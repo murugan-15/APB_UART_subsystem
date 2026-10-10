@@ -68,6 +68,7 @@ user before running the checkpoint.**
 | D-001, D-002 | Recorded in the lost Gate 0 commits; text not recoverable from the handoff. Re-record if still relevant. | — |
 | D-003 | Target v1.0, accepting outside dependencies: Vivado on an x86 host (synthesis/implementation), EDA Playground (UVM; no local UVM), Basys 3 board + sigrok-cli (hardware validation). | Gate 0 |
 | D-004 | Toolchain is built from source at pinned tags via `scripts/install_toolchain.sh`; apt versions are too old and release tarballs are blocked in the cloud sandbox. | 2026-10-10 |
+| D-005 | Project lives in `murugan-15/APB_UART_subsystem`, default branch `main` (seeded from `UART-subsytem@gate0-rebuild`, history kept). Gate work goes through PRs into `main`. | 2026-10-10 |
 
 ## Open decisions
 
