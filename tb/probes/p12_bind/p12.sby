@@ -1,0 +1,19 @@
+[tasks]
+good
+bad
+
+[options]
+mode bmc
+depth 8
+
+[engines]
+smtbmc yices
+
+[script]
+good: read_verilog -formal -sv dut.sv bind.sv
+bad:  read_verilog -formal -sv -DBAD dut.sv bind.sv
+prep -top p12_dut
+
+[files]
+dut.sv
+bind.sv

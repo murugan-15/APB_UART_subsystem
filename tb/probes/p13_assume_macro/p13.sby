@@ -1,0 +1,18 @@
+[tasks]
+with_assume
+no_assume
+
+[options]
+mode prove
+depth 8
+
+[engines]
+smtbmc yices
+
+[script]
+with_assume: read_verilog -formal -sv dut.sv
+no_assume:   read_verilog -formal -sv -DNO_ASSUME dut.sv
+prep -top p13_dut
+
+[files]
+dut.sv

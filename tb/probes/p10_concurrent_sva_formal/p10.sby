@@ -1,0 +1,18 @@
+[tasks]
+good
+bad
+
+[options]
+mode bmc
+depth 10
+
+[engines]
+smtbmc yices
+
+[script]
+good: read_verilog -formal -sv p10.sv
+bad:  read_verilog -formal -sv -DBAD p10.sv
+prep -top p10
+
+[files]
+p10.sv

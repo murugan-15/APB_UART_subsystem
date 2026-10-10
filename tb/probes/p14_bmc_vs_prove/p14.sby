@@ -1,0 +1,21 @@
+[tasks]
+bmc24  deep bmcmode
+pdr    deep provemode
+good   provemode
+
+[options]
+bmcmode:   mode bmc
+bmcmode:   depth 24
+provemode: mode prove
+
+[engines]
+bmcmode:   smtbmc yices
+provemode: abc pdr
+
+[script]
+deep: read_verilog -formal -sv p14.sv
+good: read_verilog -formal -sv -DGOOD p14.sv
+prep -top p14
+
+[files]
+p14.sv
