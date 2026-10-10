@@ -40,7 +40,9 @@ module p13_dut (
   logic f_past_valid = 1'b0;
   always @(posedge clk) f_past_valid <= 1'b1;
   always @(*) if (!f_past_valid) assume (rst);
-  // Holds only if the obligation above is met.
-  always @(*) if (busy) assert (cnt != 4'd0);
+  // Holds only if the obligation above is met. Guarded by f_past_valid:
+  // at step 0 busy/cnt are uninitialized (assume(rst) only constrains the
+  // NEXT state), so an unguarded check fails before reset has taken effect.
+  always @(*) if (f_past_valid && busy) assert (cnt != 4'd0);
 `endif
 endmodule

@@ -12,7 +12,7 @@
 
 | Gate | Name | State | Exit evidence |
 |---|---|---|---|
-| 0 | Setup and toolchain baseline (M0) | Closed | `make probe` exits 0 against `tb/probes/expected.txt`; tool matrix in `conventions.md` §1–2 |
+| 0 | Setup and toolchain baseline (M0) | Closed (rebuilt 2026-10-10) | `make probe` exits 0 against `tb/probes/expected.txt`; tool matrix in `conventions.md` §1–2 |
 | 1 | Learn the block | Active | `docs/context_note.md` (context note + learning checklist); checkpoint answered |
 | 2+ | (planned with the user at Gate 1 exit) | — | — |
 
@@ -28,10 +28,17 @@ was rebuilt from the handoff summary in a new session:
 - The 15 probes were re-implemented to the same design (self-checking, dual
   property / anti-vacuity, one line per check). They are new code, not a
   copy of the originals.
-- `expected.txt` was **re-measured**, not copied: totals differ from the
-  original 26 PASS / 8 FAIL / 1 UNAVAIL because the check list is not
-  identical. See `conventions.md` §1 for the new numbers.
-- The work is now pushed to a remote branch so it survives container loss.
+- `expected.txt` was **re-measured**, not copied: **26 PASS / 13 FAIL /
+  1 UNAVAIL** (40 checks), against the original 26 / 8 / 1. The check list
+  differs; the new checks pin gaps found during the rebuild (Yosys has no
+  `import`/`return`, Icarus has no `$error` format args, Icarus assertion
+  failures exit 0). Each FAIL is a confirmed tool limit; see
+  `conventions.md` §2.
+- Original findings reproduced: Icarus can't run class-based TBs, Yosys
+  rejects concurrent SVA and silently drops `bind`, BUG-002.
+- Lesson: three Verilator FAILs and one sby FAIL in the first run were
+  **probe bugs** (lint, uninitialized state at step 0). Read the log before
+  recording a FAIL as a tool gap (`bug_log.md`).
 
 ## Gate 1 plan
 

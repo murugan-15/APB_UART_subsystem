@@ -2,8 +2,10 @@
 // guard (the convention used in all of this project's formal properties).
 //   good    : correct register, guarded assertion      -> must PASS
 //   bad     : register corrupts d == 8'hA5, guarded     -> must FAIL with trace
-//   noguard : correct register, UNguarded assertion    -> fails spuriously at
-//             step 0, because $past() has no history yet
+//   noguard : correct register, UNguarded assertion    -> fails spuriously on
+//             its first evaluation (smtbmc reports step 1): a clocked
+//             assertion samples pre-edge values, so it compares the
+//             uninitialized q with the uninitialized $past(d) register
 module p11 (input logic clk, input logic [7:0] d, output logic [7:0] q);
 `ifdef BAD
   always_ff @(posedge clk) q <= (d == 8'hA5) ? 8'h00 : d;

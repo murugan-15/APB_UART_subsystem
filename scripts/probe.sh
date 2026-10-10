@@ -176,6 +176,9 @@ check p02_interfaces         yosys-synth    yosys     ys_synth p02_dut dut.sv
 check p03_packages_generate  verilator      verilator vl_sim p03_tb dut.sv tb.sv
 check p03_packages_generate  iverilog       iverilog  iv_sim p03_tb dut.sv tb.sv
 check p03_packages_generate  yosys-synth    yosys     ys_synth p03_dut dut.sv
+check p03_packages_generate  yosys-return   yosys     ys_synth p03_dut -DUSE_RETURN dut.sv
+check p03_packages_generate  yosys-header-import yosys ys_synth p03_dut -DHEADER_IMPORT dut.sv
+check p03_packages_generate  yosys-body-import yosys  ys_synth p03_dut -DBODY_IMPORT dut.sv
 
 check p04_nba_ordering       verilator      verilator vl_sim p04_tb dut.sv tb.sv
 check p04_nba_ordering       iverilog       iverilog  iv_sim p04_tb dut.sv tb.sv

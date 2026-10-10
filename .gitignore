@@ -4,3 +4,4 @@ obj_dir/
 *.fst
 *.vvp
 __pycache__/
+*.bundle
