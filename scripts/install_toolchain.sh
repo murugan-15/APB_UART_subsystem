@@ -26,6 +26,8 @@ mkdir -p "$BUILD" "$PREFIX"
 export PATH="$PREFIX/bin:$PATH"
 
 deps() {
+  # Fresh containers ship with empty package lists.
+  apt-get update -qq
   DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
     build-essential autoconf automake flex bison help2man perl python3 \
     python3-pip python3-click cmake libfl-dev zlib1g-dev ccache gperf libgmp-dev \
