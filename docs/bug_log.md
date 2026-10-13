@@ -1,36 +1,77 @@
-# Bug log
+# Bug Log
 
-Format: ID · found in · symptom · root cause · fix · guard (what stops it recurring).
+Real bugs only, appended at the end of every DEBUG-mode resolution. Never invent or
+embellish an entry.
 
-## BUG-001 — p04 testbench race (M0)
+```text
+### BUG-001 — <short title>
+Date:            YYYY-MM-DD
+Found by:        <directed test / random seed N / assertion ID / formal CEX / lint / review>
+Reproduce:       <exact command, seed, config>
+Symptom:         <what was observed>
+Evidence:        <waveform signals + cycle/time, log lines>
+Hypothesis:      <initial theory and why it fit>
+Root cause:      <actual cause>
+Classification:  <DUT / testbench / assertion / harness / script / tool>
+Fix:             <what changed, commit hash>
+Regression:      <what was re-run, result>
+Prevention:      <assertion / test / coverage point added so it can't recur silently>
+Lesson:          <one line>
+```
 
-- **Found in:** M0 probe p04 (original Gate 0).
-- **Symptom:** the same TB + DUT gave different pipeline results in
-  Verilator and Icarus.
-- **Root cause:** the TB drove the DUT input with a *blocking* assignment at
-  `@(posedge clk)`. Whether the DUT's `always_ff` read the old or new value
-  depended on process scheduling order, which the LRM leaves to the
-  simulator. That is a race.
-- **Fix:** drive with nonblocking assignments at posedge (or blocking at
-  negedge) and check outputs at the opposite edge.
-- **Guard:** p04 checks the race-free convention in both simulators;
-  `conventions.md` §3 makes it the TB rule.
+### BUG-001 — Concurrent-SVA probe: stimulus race made a true property fire
+Date:            2026-10-10
+Found by:        Self-check in probe p04 (good property expected silent)
+Reproduce:       `make probe` at the pre-fix revision of tb/probes/p04_sva_concurrent.sv (Verilator 5.050)
+Symptom:         `INFO: good_fails=3 bad_fails=3` — the property that holds by construction
+                 (`$rose(req) |-> ##1 ack`) fired once per req pulse.
+Evidence:        Log build/probes/verilator/p04_sva_concurrent/log.txt. Good and bad properties
+                 fired the same number of times (3 = number of req pulses), which fits "ack
+                 never rises". No waveform was dumped, so this evidence is indirect.
+Hypothesis:      `ack <= req` was in `always @(negedge clk)` while the stimulus also changed
+                 `req` right after `@(negedge clk)`. Both processes wake on the same negedge;
+                 if the stimulus clears req first, ack samples 0 and never rises.
+Root cause:      Race between two processes triggered by the same event (testbench bug).
+Classification:  testbench
+Fix:             `ack` became a posedge flop (`always @(posedge clk) ack <= req;`), which is the
+                 realistic DUT shape: stimulus changes on negedge, design samples on posedge.
+                 Uncommitted at time of writing (M0 commit).
+Regression:      `make probe`: p04 verilator `good_fails=0 bad_fails=3` → PASS.
+Prevention:      Probe keeps a deliberately false property alongside the true one, so both
+                 "never fires" and "always fires" are caught.
+Lesson:          Drive stimulus and sample DUT on opposite edges, or use NBAs from a clocking
+                 block; never let two processes race on the same edge.
 
-## BUG-002 — `-Wno-fatal` hides elaboration `$error` in Verilator (M0)
+### BUG-002 — Probe script masked an elaboration $error (`-Wno-fatal`)
+Date:            2026-10-10
+Found by:        Negative probe p06_param_bad (illegal DEPTH must fail elaboration)
+Reproduce:       `verilator --binary -Wall -Wno-fatal ... -DP06_DEPTH=3 p06_param_stub.sv p06_param_check.sv`
+Symptom:         Illegal DEPTH=3 built and ran; probe reported "$error ignored".
+Evidence:        Log line `%Warning-USERERROR: p06_param_stub.sv:15:5: ... DEPTH must be a power of two`
+                 followed by a successful C++ build.
+Hypothesis:      Verilator reports elaboration `$error` as the USERERROR *warning*; `-Wno-fatal`
+                 makes all warnings non-fatal.
+Root cause:      Script flag choice (`-Wall -Wno-fatal` to keep TB lint noise non-fatal).
+Classification:  script
+Fix:             Added `-Werror-USERERROR` to the Verilator build line in scripts/probe.sh.
+Regression:      `make probe`: p06_param_bad verilator → PASS (rejected with the intended message);
+                 p06_param_ok still PASS.
+Prevention:      p06_param_bad stays in `make probe`; the same flag must go into `make sim`/`make lint`.
+Lesson:          A blanket "warnings non-fatal" flag can turn a design-intent error into a
+                 warning. Make specific codes fatal again.
 
-- **Found in:** M0 probe p08 (original Gate 0); re-confirmed 2026-10-10
-  with Verilator 5.050 (check `p08_elab_error verilator-wnofatal` = FAIL).
-- **Symptom:** an illegal parameter (W=1) that must be rejected elaborates
-  successfully when Verilator runs with `-Wno-fatal`.
-- **Root cause:** Verilator reports elaboration-time `$error` as
-  `%Warning-USERERROR`, not as an error. It is fatal only because warnings
-  are fatal by default; `-Wno-fatal` turns it into a printed message and
-  elaboration continues.
-- **Fix:** never use a blanket `-Wno-fatal` in project flows. Silence
-  specific lint codes locally with `/* verilator lint_off CODE */` if needed.
-- **Guard:** p08 keeps both checks (`verilator` must PASS,
-  `verilator-wnofatal` stays FAIL in the baseline), so a change in
-  Verilator's behaviour shows up as a baseline diff.
+## Notes on the rebuilt line (2026-10-13)
+
+BUG-001 and BUG-002 above are the original entries, with their evidence, from the original
+line's probe suite. While the original was believed lost, the rebuilt line carried
+reconstructed summaries of the same two bugs; those summaries were replaced by the originals
+on 2026-10-13. In this repo's probe suite the same lessons are pinned by:
+
+- BUG-001 (race between processes on one edge): p04 checks the race-free drive/sample
+  convention in both simulators; `conventions.md` §2.2 rule 5.
+- BUG-002 (`-Wno-fatal` hides elaboration `$error`): p08 keeps `verilator` PASS and
+  `verilator-wnofatal` FAIL in `expected.txt`, so a change in Verilator's behaviour shows up
+  as a baseline diff; `conventions.md` §2.2 rule 4.
 
 ## Rebuild findings (2026-10-10, not RTL bugs)
 

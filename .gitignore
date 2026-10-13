@@ -5,3 +5,7 @@ obj_dir/
 *.vvp
 __pycache__/
 *.bundle
+
+# OS / editor
+.DS_Store
+*.swp
