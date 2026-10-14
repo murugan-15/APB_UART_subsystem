@@ -2,12 +2,13 @@ SHELL := /bin/bash
 EDA   ?= /opt/eda
 export PATH := $(EDA)/bin:$(PATH)
 
-.PHONY: help toolchain probe probe-accept clean
+.PHONY: help toolchain probe probe-accept probe-mac clean
 
 help:
 	@echo "make toolchain     build pinned EDA tools into $(EDA) (sudo, ~40 min)"
 	@echo "make probe         run M0 capability probes, diff against baseline"
 	@echo "make probe-accept  overwrite the baseline with the latest results"
+	@echo "make probe-mac     run the original Mac M0 suite (tb/probes/mac_suite)"
 	@echo "make clean         remove build/"
 
 toolchain:
@@ -20,6 +21,10 @@ probe:
 # baseline moved in docs/bug_log.md or conventions.md.
 probe-accept:
 	cp build/probe/results.txt tb/probes/expected.txt
+
+# Original Mac M0 suite, kept separately until M0b ports it (tb/probes/mac_suite/README.md).
+probe-mac:
+	bash tb/probes/mac_suite/probe.sh
 
 clean:
 	rm -rf build

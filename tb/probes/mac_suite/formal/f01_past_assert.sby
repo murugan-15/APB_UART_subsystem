@@ -1,0 +1,44 @@
+# Probe F01 — immediate-assertion formal style, three engines, plus negative variants.
+# Run one task at a time:  sby -f --prefix <dir>/f01 f01_past_assert.sby <task>
+
+[tasks]
+prove_pdr
+bmc_abc
+bmc_smtbmc
+bug_pdr
+noassume_pdr
+cover_smtbmc
+
+[options]
+prove_pdr: mode prove
+bug_pdr: mode prove
+noassume_pdr: mode prove
+bmc_abc: mode bmc
+bmc_abc: depth 24
+bmc_smtbmc: mode bmc
+bmc_smtbmc: depth 24
+cover_smtbmc: mode cover
+cover_smtbmc: depth 24
+
+[engines]
+prove_pdr: abc pdr
+bug_pdr: abc pdr
+noassume_pdr: abc pdr
+bmc_abc: abc bmc3
+bmc_smtbmc: smtbmc
+cover_smtbmc: smtbmc
+
+# NOTE: this sby version does not accept several task names before one colon
+# ("a b: line"); such lines are passed through unfiltered. Use one task per prefix.
+[script]
+prove_pdr: read -formal f01_past_assert.sv
+bmc_abc: read -formal f01_past_assert.sv
+bmc_smtbmc: read -formal f01_past_assert.sv
+cover_smtbmc: read -formal f01_past_assert.sv
+bug_pdr: read -formal -DPROBE_BUG f01_past_assert.sv
+noassume_pdr: read -formal -DPROBE_NO_ASSUME f01_past_assert.sv
+prep -top f01_past_assert
+
+[files]
+f01_past_assert.sv
+../probe_assume.svh

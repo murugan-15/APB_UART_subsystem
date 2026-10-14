@@ -125,7 +125,8 @@ installed there, and must fail with a clear message if the environment is missin
 
 ### 2.3 Findings from the original line not yet probed here
 
-Measured on the Mac host with the original probe suite (not in `tb/probes/` on this branch).
+Measured on the Mac host with the original probe suite, now kept in `tb/probes/mac_suite/`
+(`make probe-mac`; cloud-host status in its README).
 Before a milestone relies on one of these, port the probe into `tb/probes/` and re-baseline
 (proposed milestone M0b).
 
@@ -248,6 +249,7 @@ save the decoded log under `build/reports/bringup/`. That is hard evidence for t
 |---|---|---|---|
 | `make toolchain` | Builds the pinned tools into `/opt/eda` (cloud host, D-004) | exits nonzero on build failure | yes |
 | `make probe` | Runs all capability probes | pass/fail per probe | yes |
+| `make probe-mac` | Runs the original Mac M0 suite in `tb/probes/mac_suite/` | pass/fail per probe vs its own baseline | yes |
 | `make probe-accept` | Copies the latest probe results over `tb/probes/expected.txt` (after review) | — | yes |
 | `make sim TEST=<name> SEED=<n>` | One test, one seed, waveform dump | exits nonzero on failure | planned |
 | `make regression` | All tests × seeds × configs; summary table | `build/reports/regression.txt` | planned |

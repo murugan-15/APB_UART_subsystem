@@ -1,0 +1,19 @@
+# Probe F02 — concurrent SVA under open-source Yosys.
+
+[tasks]
+prove_pdr
+bug_pdr
+
+[options]
+mode prove
+
+[engines]
+abc pdr
+
+[script]
+prove_pdr: read -formal f02_sva_concurrent.sv
+bug_pdr: read -formal -DPROBE_BUG f02_sva_concurrent.sv
+prep -top f02_sva_concurrent
+
+[files]
+f02_sva_concurrent.sv

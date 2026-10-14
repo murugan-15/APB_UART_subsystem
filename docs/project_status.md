@@ -77,8 +77,8 @@ Two implementations of Gate 0 exist:
 
 `main` is the project line (decided 2026-10-13). From the original line it adopted the decision
 log (D-001 to D-003), `conventions.md` §3–§8, the original BUG-001/BUG-002 entries, the seed
-spec and the directory scaffolding. Its probe suite was not merged; four constructs it covered
-are not yet probed here (`conventions.md` §2.3) — see open decisions.
+spec and the directory scaffolding. Its probe suite is kept as a separate suite in `tb/probes/mac_suite/`; four constructs it
+covers are not yet in the main suite (`conventions.md` §2.3) — see open decisions.
 
 Lesson from the rebuild: three Verilator FAILs and one sby FAIL in the first run were **probe
 bugs** (lint, uninitialized state at step 0). Read the log before recording a FAIL as a tool gap.
@@ -106,8 +106,10 @@ See `docs/decisions.md` (D-001 to D-005).
 - [x] Target release cut — D-003, 2026-10-10
 - [x] Project line — `main` (2026-10-13)
 - [ ] Port the four original-only probes (classes + mailbox, covergroup, `--coverage`, FST
-      dump) into `tb/probes/` and re-baseline (proposed milestone M0b; needed before v0.5 work)
-- [ ] Delete the original-line branch once this merge is accepted
+      dump) into `tb/probes/` and re-baseline (proposed milestone M0b; needed before v0.5 work).
+      The original suite is in `tb/probes/mac_suite/` (`make probe-mac`); on the cloud host its
+      FST checks need `liblz4-dev` and `xxd`.
+- [x] Delete the original-line branch — done 2026-10-14 (public repo now has `main` only)
 - [ ] Async FIFO / separate UART clock (the only CDC content) — decide in Phase 3
 
 ## Next step

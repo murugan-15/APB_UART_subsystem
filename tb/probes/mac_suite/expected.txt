@@ -1,0 +1,38 @@
+# Expected capability-probe results: <probe> <tool> <PASS|FAIL|UNAVAILABLE>
+# FAIL here means a known, recorded tool limitation (conventions.md §2), not a broken probe.
+# Regenerate with: UPDATE_BASELINE=1 make probe   (review the diff before committing)
+f01_bmc_abc sby PASS
+f01_bmc_smtbmc sby PASS
+f01_bug_pdr sby PASS
+f01_cover_smtbmc sby PASS
+f01_noassume_pdr sby PASS
+f01_prove_pdr sby PASS
+f02_sva_bug sby FAIL
+f02_sva_prove sby FAIL
+f03_bind_bug sby FAIL
+f03_bind_prove sby PASS
+p01_class_queue_mailbox icarus FAIL
+p01_class_queue_mailbox verilator PASS
+p02_randomize icarus FAIL
+p02_randomize verilator PASS
+p03_covergroup icarus FAIL
+p03_covergroup verilator PASS
+p04_sva_concurrent icarus FAIL
+p04_sva_concurrent verilator PASS
+p05_bind icarus FAIL
+p05_bind verilator PASS
+p06_param_bad icarus PASS
+p06_param_bad verilator PASS
+p06_param_bad yosys PASS
+p06_param_ok icarus PASS
+p06_param_ok verilator PASS
+p06_param_ok yosys PASS
+p07_code_coverage verilator PASS
+p07_cov_report verilator PASS
+p08_fst icarus PASS
+p08_fst verilator PASS
+p08_wave_dump icarus PASS
+p08_wave_dump verilator PASS
+p09_assume_macro icarus PASS
+p09_assume_macro verilator PASS
+p_uvm verilator UNAVAILABLE
