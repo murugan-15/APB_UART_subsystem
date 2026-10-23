@@ -93,3 +93,19 @@ Reason:        Not stated when decided. (Claude's summary of the tradeoff, for r
 Impact:        project_status.md "Gate 0 history"; conventions.md §1–§2; bug_log.md.
 Decided by:    me
 Supersedes:    none
+
+### D-006 — Tools and structure check at every gate
+Date:          2026-10-23
+Phase:         1 (applies to every later gate)
+Decision:      Each gate exit includes a tools-and-structure check (project_status.md): the tools
+               and repository structure that gate needs are in place, are the right choice, and
+               pass a probe before anything relies on them. Results use pass / fail / not run /
+               not applicable with evidence.
+Alternatives:  Decide tools ad hoc when a phase starts; review once at the readiness gate.
+Reason:        Production IP needs more than RTL (register description, lint, regression, CI,
+               packaging, docs). Checking per gate adds each piece when it is first needed and
+               keeps the public repository reproducible by anyone, including through CI.
+Impact:        project_status.md "Tools and structure check"; new directories are created only
+               when their gate needs them.
+Decided by:    me
+Supersedes:    none

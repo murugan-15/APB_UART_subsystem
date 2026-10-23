@@ -9,7 +9,7 @@ Current mode:       LEARN
 Autonomy level:     3
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-10-13
+Last updated:       2026-10-23
 ```
 
 ## Gate checklist
@@ -17,7 +17,7 @@ Last updated:       2026-10-13
 | Phase | Status (done / in progress / not started / N/A / not run) | Evidence or reason |
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
-| 1 Learn | in progress | L1 done; L2–L8 open (table below) |
+| 1 Learn | in progress | L1–L3 done; L4–L8 open (table below) |
 | 2 Requirements | not started | Input: `docs/uart_spec_seed.md` |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
@@ -29,6 +29,25 @@ Last updated:       2026-10-13
 | 10 Synth / timing / CDC / FPGA | not started | |
 | 11 Readiness review | not started | |
 | 12 Design defense and rebuild | not started | |
+
+## Tools and structure check (per gate, D-006)
+
+At each gate exit, confirm the tools and the repository structure that gate needs are in
+place, are the right choice, and pass a probe before anything relies on them (conventions §2).
+Status: pass / fail / not run / not applicable, with evidence.
+
+| Gate | Check | Candidate tools / structure | Status |
+|---|---|---|---|
+| 0 | Pinned toolchain, probe baseline, PLANS §2 skeleton | Verilator, Icarus, Yosys, sby, Yices, Z3; `make probe` | pass (2026-10-10) |
+| 2 | Requirements traceable by ID | `docs/spec.md` with REQ-* IDs | not run |
+| 3 | One register description generating docs and C header; FPGA APB driver chosen | SystemRDL + PeakRDL (`rdl/`); `rtl/board/` | not run |
+| 4 | Verification plan names a tool per check | `docs/verification_plan.md` | not run |
+| 5 | RTL lint and format clean | `verilator --lint-only -Wall`; Verible (to probe) | not run |
+| 7 | Reproducible regression with seeds and coverage | `scripts/regression.py`; Verilator `--coverage`; covergroups (needs M0b) | not run |
+| 8 | Formal jobs per block | SymbiYosys (`formal/`) | not run |
+| 9 | CI anyone can run: pinned tool image, all checks on push | GitHub Actions (`.github/workflows/`); container image built from `scripts/install_toolchain.sh` | not run |
+| 10 | Resource, timing, bring-up evidence; written CDC review | Yosys `synth_xilinx`, openXC7, Vivado (D-002); `sigrok-cli` | not run |
+| 11 | Release-ready IP package | FuseSoC `.core`, `README.md`, `CHANGELOG.md`, `LICENSE`, datasheet, `sw/` header and driver, version tags | not run |
 
 ## Check results (latest)
 
@@ -50,9 +69,9 @@ separates **specified facts**, **design choices**, and **open questions**.
 | # | Topic | State |
 |---|---|---|
 | L1 | System context (where the UART sits, who drives it) | done 2026-10-12 |
-| L2 | APB3 protocol (setup/access phases, PREADY, PSLVERR) | next |
-| L3 | UART frame (start, data, parity, stop; LSB first) | not started |
-| L4 | Baud generation (divisor, oversampling, error budget) | not started |
+| L2 | APB3 protocol (setup/access phases, PREADY, PSLVERR) | done 2026-10-22 |
+| L3 | UART frame (start, data, parity, stop; LSB first) and transmitter | done 2026-10-23 |
+| L4 | Baud generation (divisor, oversampling, error budget) | next |
 | L5 | RX synchronizer and start-bit detection | partly (synchronizer depth, multi-bit CDC) |
 | L6 | FIFOs (depth, full/empty, overflow policy) | not started |
 | L7 | Registers and interrupts | not started |
@@ -97,7 +116,7 @@ bugs** (lint, uninitialized state at step 0). Read the log before recording a FA
 
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-005).
+See `docs/decisions.md` (D-001 to D-006).
 
 ## Open decisions (mine to make)
 
@@ -111,7 +130,11 @@ See `docs/decisions.md` (D-001 to D-005).
       FST checks need `liblz4-dev` and `xxd`.
 - [x] Delete the original-line branch — done 2026-10-14 (public repo now has `main` only)
 - [ ] Async FIFO / separate UART clock (the only CDC content) — decide in Phase 3
+- [ ] Register description: SystemRDL for docs + C header only, or also generated RTL — Gate 3
+- [ ] How the FPGA demo drives APB (test sequencer, UART-to-APB bridge, or soft CPU) — Gate 3
+- [ ] License — before the first public release (v0.1)
+- [ ] CI tool image: build from `scripts/install_toolchain.sh` and publish, or use a pinned prebuilt bundle — Gate 9
 
 ## Next step
 
-Gate 1, L2 (APB3): one write with a wait state cycle by cycle; why APB has a setup phase.
+Gate 1, L4 (baud generation): divisor rounding, fractional divisors, oversampling choice.
