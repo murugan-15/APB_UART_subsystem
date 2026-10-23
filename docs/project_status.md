@@ -40,14 +40,14 @@ Status: pass / fail / not run / not applicable, with evidence.
 |---|---|---|---|
 | 0 | Pinned toolchain, probe baseline, PLANS §2 skeleton | Verilator, Icarus, Yosys, sby, Yices, Z3; `make probe` | pass (2026-10-10) |
 | 2 | Requirements traceable by ID | `docs/spec.md` with REQ-* IDs | not run |
-| 3 | One register description generating docs and C header; FPGA APB driver chosen | SystemRDL + PeakRDL (`rdl/`); `rtl/board/` | not run |
+| 3 | One register description generating docs and C header (D-007); board test sequencer designed (D-008) | SystemRDL + PeakRDL (`rdl/`); `rtl/board/` | not run |
 | 4 | Verification plan names a tool per check | `docs/verification_plan.md` | not run |
 | 5 | RTL lint and format clean | `verilator --lint-only -Wall`; Verible (to probe) | not run |
 | 7 | Reproducible regression with seeds and coverage | `scripts/regression.py`; Verilator `--coverage`; covergroups (needs M0b) | not run |
 | 8 | Formal jobs per block | SymbiYosys (`formal/`) | not run |
-| 9 | CI anyone can run: pinned tool image, all checks on push | GitHub Actions (`.github/workflows/`); container image built from `scripts/install_toolchain.sh` | not run |
+| 9 | CI anyone can run (D-010): pinned tool image, all checks on push, Codespaces | GitHub Actions (`.github/workflows/`), GHCR image from `scripts/install_toolchain.sh`, `.devcontainer/` | not run |
 | 10 | Resource, timing, bring-up evidence; written CDC review | Yosys `synth_xilinx`, openXC7, Vivado (D-002); `sigrok-cli` | not run |
-| 11 | Release-ready IP package | FuseSoC `.core`, `README.md`, `CHANGELOG.md`, `LICENSE`, datasheet, `sw/` header and driver, version tags | not run |
+| 11 | Release-ready IP package | FuseSoC `.core`, `README.md`, `CHANGELOG.md`, `LICENSE` (added, D-009), datasheet, `sw/` header and driver, version tags | not run |
 
 ## Check results (latest)
 
@@ -116,7 +116,7 @@ bugs** (lint, uninitialized state at step 0). Read the log before recording a FA
 
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-006).
+See `docs/decisions.md` (D-001 to D-010).
 
 ## Open decisions (mine to make)
 
@@ -130,10 +130,12 @@ See `docs/decisions.md` (D-001 to D-006).
       FST checks need `liblz4-dev` and `xxd`.
 - [x] Delete the original-line branch — done 2026-10-14 (public repo now has `main` only)
 - [ ] Async FIFO / separate UART clock (the only CDC content) — decide in Phase 3
-- [ ] Register description: SystemRDL for docs + C header only, or also generated RTL — Gate 3
-- [ ] How the FPGA demo drives APB (test sequencer, UART-to-APB bridge, or soft CPU) — Gate 3
-- [ ] License — before the first public release (v0.1)
-- [ ] CI tool image: build from `scripts/install_toolchain.sh` and publish, or use a pinned prebuilt bundle — Gate 9
+- [x] Register description — D-007 (SystemRDL for docs and header, hand-written RTL), 2026-10-23
+- [x] FPGA APB driver — D-008 (on-board test sequencer), 2026-10-23
+- [ ] Soft CPU running the C driver on the board — revisit after v1.0
+- [x] License — D-009 (Apache-2.0), 2026-10-23
+- [x] CI — D-010 (own pinned toolchain image on GHCR, CI on every push, Codespaces), 2026-10-23
+- [x] ASIC flow (OpenLane / SKY130) — not pursued (2026-10-23)
 
 ## Next step
 

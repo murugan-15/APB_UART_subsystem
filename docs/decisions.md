@@ -109,3 +109,63 @@ Impact:        project_status.md "Tools and structure check"; new directories ar
                when their gate needs them.
 Decided by:    me
 Supersedes:    none
+
+### D-007 — Register description in SystemRDL; register RTL written by hand
+Date:          2026-10-23
+Phase:         1 (implemented at Gate 3)
+Decision:      The register map is described once in SystemRDL (`rdl/`). PeakRDL generates the
+               C header and the register documentation from it. The APB register block RTL is
+               written by hand. At v0.5, PeakRDL's generated register block is compared with the
+               hand-written one in simulation.
+Alternatives:  Hand-written docs and header (they drift from the RTL); generate the RTL too
+               (skips the decode / read-mux / W1C logic this project exists to practise, and the
+               generated SystemVerilog may not pass Yosys 0.69 without a probe).
+Reason:        One source of truth for software-visible facts, an industry-standard format,
+               installable with pip in the cloud host and in CI.
+Impact:        `rdl/`, Makefile target for generation, CI check that generated files are current.
+Decided by:    me
+Supersedes:    none
+
+### D-008 — FPGA demo drives APB with an on-board test sequencer
+Date:          2026-10-23
+Phase:         1 (implemented at Gate 10; designed at Gate 3)
+Decision:      `rtl/board/` contains a small sequencer FSM that acts as the APB master on the
+               Basys 3: configure the UART, send a fixed message, then echo received bytes
+               (RXDATA -> TXDATA). The same board top runs as a simulation integration test in CI.
+               A UART-to-APB debug bridge is rejected (the board's only USB-UART is used by the
+               DUT). A soft CPU (e.g. PicoRV32) running the C driver is not decided; revisit after
+               v1.0.
+Alternatives:  UART-to-APB bridge; soft CPU with firmware.
+Reason:        Lowest effort that exercises the full APB -> UART -> pin path on hardware, is
+               deterministic, and is testable in CI without a board.
+Impact:        `rtl/board/`, an integration test, bring-up evidence in `build/reports/bringup/`.
+Decided by:    me
+Supersedes:    none
+
+### D-009 — License: Apache-2.0
+Date:          2026-10-23
+Phase:         1
+Decision:      The repository is licensed under Apache-2.0 (`LICENSE`); new source files carry an
+               `SPDX-License-Identifier: Apache-2.0` line.
+Alternatives:  Solderpad Hardware License 2.1; CERN-OHL-S/W; no license.
+Reason:        Widely recognised, permissive, includes a patent grant, used by large open
+               hardware projects; no license would mean all rights reserved.
+Impact:        `LICENSE`; SPDX headers from the first RTL file on.
+Decided by:    me
+Supersedes:    none
+
+### D-010 — CI anyone can run, on a pinned toolchain image
+Date:          2026-10-23
+Phase:         1 (implemented at Gate 9)
+Decision:      A workflow builds a container image from `scripts/install_toolchain.sh` (the same
+               pinned versions as conventions §1) and publishes it to GitHub Container Registry.
+               CI runs lint, probes, regression and formal on every push using that image, with a
+               status badge in the README. A devcontainer lets anyone open the repository in
+               GitHub Codespaces and run `make ci`. Forks run the same workflows without secrets.
+Alternatives:  Build tools from source in every CI run (40-60 min); a prebuilt third-party
+               bundle (versions differ from the pinned ones).
+Reason:        Reviewers can see, rerun (in a fork or Codespace) and reproduce every check with
+               identical tool versions.
+Impact:        `.github/workflows/`, `.devcontainer/`, container image name in conventions §8.
+Decided by:    me
+Supersedes:    none
