@@ -9,7 +9,7 @@ Current mode:       LEARN
 Autonomy level:     3
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-10-23
+Last updated:       2026-10-26
 ```
 
 ## Gate checklist
@@ -17,7 +17,7 @@ Last updated:       2026-10-23
 | Phase | Status (done / in progress / not started / N/A / not run) | Evidence or reason |
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
-| 1 Learn | in progress | L1–L3 done; L4–L8 open (table below) |
+| 1 Learn | in progress | L1–L5 done; L6–L8 open (table below) |
 | 2 Requirements | not started | Input: `docs/uart_spec_seed.md` |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
@@ -71,9 +71,9 @@ separates **specified facts**, **design choices**, and **open questions**.
 | L1 | System context (where the UART sits, who drives it) | done 2026-10-12 |
 | L2 | APB3 protocol (setup/access phases, PREADY, PSLVERR) | done 2026-10-22 |
 | L3 | UART frame (start, data, parity, stop; LSB first) and transmitter | done 2026-10-23 |
-| L4 | Baud generation (divisor, oversampling, error budget) | next |
-| L5 | RX synchronizer and start-bit detection | partly (synchronizer depth, multi-bit CDC) |
-| L6 | FIFOs (depth, full/empty, overflow policy) | not started |
+| L4 | Baud generation (divisor, oversampling, error budget) | done 2026-10-25 |
+| L5 | RX synchronizer and start-bit detection | done 2026-10-26 |
+| L6 | FIFOs (depth, full/empty, overflow policy) | in progress |
 | L7 | Registers and interrupts | not started |
 | L8 | Verification strategy (sim / SVA / formal / FPGA split) | not started |
 
@@ -139,4 +139,4 @@ See `docs/decisions.md` (D-001 to D-010).
 
 ## Next step
 
-Gate 1, L4 (baud generation): divisor rounding, fractional divisors, oversampling choice.
+Gate 1, L6 (FIFOs): depth, full/empty detection, overflow and underflow policy (seed decisions 1, 2, 4, 5).
