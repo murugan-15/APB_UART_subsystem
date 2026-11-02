@@ -9,7 +9,7 @@ Current mode:       LEARN
 Autonomy level:     3
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-11-01
+Last updated:       2026-11-02
 ```
 
 ## Gate checklist
@@ -17,7 +17,7 @@ Last updated:       2026-11-01
 | Phase | Status (done / in progress / not started / N/A / not run) | Evidence or reason |
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
-| 1 Learn | in progress | L1–L7 done; L8 open (table below) |
+| 1 Learn | in progress | L1–L8 done; Gate 1 checkpoint and context note open |
 | 2 Requirements | not started | Input: `docs/uart_spec_seed.md` |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
@@ -75,7 +75,7 @@ separates **specified facts**, **design choices**, and **open questions**.
 | L5 | RX synchronizer and start-bit detection | done 2026-10-26 |
 | L6 | FIFOs (depth, full/empty, overflow policy) | done 2026-10-27 |
 | L7 | Registers and interrupts | done 2026-11-01 |
-| L8 | Verification strategy (sim / SVA / formal / FPGA split) | next |
+| L8 | Verification strategy (sim / SVA / formal / FPGA split) | done 2026-11-02 |
 
 Gate 1 checkpoint: a fresh variant of each M0 topic plus L1–L8 explained cold; any topic
 still weak goes on a revisit list at Gate 2 entry.
@@ -139,4 +139,4 @@ See `docs/decisions.md` (D-001 to D-010).
 
 ## Next step
 
-Gate 1, L8 (verification strategy: what simulation, SVA, formal and FPGA each prove), then the Gate 1 checkpoint and `docs/context_note.md`.
+Gate 1 checkpoint (every missed topic re-asked cold), then `docs/context_note.md` to close Gate 1.
