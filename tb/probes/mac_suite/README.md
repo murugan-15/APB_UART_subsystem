@@ -25,3 +25,8 @@ come from the host setup, not from the tools:
 | `p08_fst icarus` | FAIL | Icarus wrote `p08.fst`, but the check calls `xxd`, which is not installed here |
 
 The baseline was not changed.
+
+## Cloud-host run, 2026-11-15
+
+`scripts/install_toolchain.sh` now installs `liblz4-dev` and `xxd`. With them, `make probe-mac`
+gives 26 PASS / 8 FAIL / 1 UNAVAILABLE and matches `expected.txt` exactly (exit 0).

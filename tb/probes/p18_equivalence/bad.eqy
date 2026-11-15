@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 murugan-15
+[gold]
+read -sv gold.sv
+prep -top p18_par
+
+[gate]
+read -sv bad.sv
+prep -top p18_par
+
+[strategy sby]
+use sby
+depth 1
+engine smtbmc yices

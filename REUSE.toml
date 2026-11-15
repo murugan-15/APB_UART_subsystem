@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 murugan-15
+#
+# Files that cannot or should not carry an SPDX header of their own: documents, probe baselines
+# (compared byte for byte with tool output), placeholder files, and the original Mac probe suite
+# (kept unchanged as a record). Every other code file has its header.
+version = 1
+
+[[annotations]]
+path = ["docs/**", "tb/probes/README.md"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 murugan-15"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["tb/probes/expected.txt", "tb/probes/mac_suite/**", "**/.gitkeep", ".gitignore", "LICENSE"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 murugan-15"
+SPDX-License-Identifier = "Apache-2.0"

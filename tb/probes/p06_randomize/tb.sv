@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p06: constrained random -- rand fields, constraint blocks with inside and
 // implication, randomize() with {...}. Verilator solves constraints with an
 // external SMT solver (z3), so this probe also checks that the solver is set up.

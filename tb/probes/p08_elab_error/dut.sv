@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p08: elaboration-time parameter check with $error in a generate block.
 // This is how the UART will reject illegal parameters (e.g. FIFO depth not a
 // power of two). Dual check: the legal top must elaborate cleanly AND the

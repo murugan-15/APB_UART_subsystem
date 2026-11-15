@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
+// Configuration file: lint is switched off for the third-party UVM library
+// only. Our own testbench files stay under the normal warnings, and nothing
+// here makes warnings non-fatal (conventions rule 4).
+// (No comment in this file may start with the tool's name: it would be read
+// as a pragma, conventions section 2.4.)
+`verilator_config
+lint_off -file "*/uvm-verilator/*"

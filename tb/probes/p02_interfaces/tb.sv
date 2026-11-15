@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+
 module p02_tb;
   logic       clk = 1'b0, rst_n = 1'b0;
   logic [7:0] last;

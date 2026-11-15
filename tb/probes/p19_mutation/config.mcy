@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 murugan-15
+[options]
+size 40
+tags COVERED UNCOVERED
+
+[script]
+read_verilog dut.v
+prep -top p19_dut
+
+[files]
+dut.v
+
+[logic]
+if result("test_sim") == "PASS":
+    tag("UNCOVERED")
+else:
+    tag("COVERED")
+
+[report]
+print("COVERED %d UNCOVERED %d" % (tags("COVERED"), tags("UNCOVERED")))
+
+[test test_sim]
+expect PASS FAIL
+run bash $PRJDIR/test_sim.sh

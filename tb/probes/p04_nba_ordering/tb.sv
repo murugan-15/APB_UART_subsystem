@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p04: race-free TB convention (fix for BUG-001).
 // Drive DUT inputs with NONBLOCKING assignments at the active clock edge and
 // check outputs at the opposite edge. The DUT's always_ff then always reads

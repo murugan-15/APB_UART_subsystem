@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+
 module p03_tb;
   import p03_pkg::*;
   logic [3:0][7:0] d;

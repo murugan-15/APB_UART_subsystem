@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p09: concurrent SVA in simulation (dual property).
 // ack is req delayed by exactly one cycle, so
 //   a_good: req |-> ##1 ack  never fails, and

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p14: what a BMC "PASS" does and does not mean.
 //   deep    : free-running 5-bit counter, bug state cnt == 30 is reachable
 //             only at step 30. BMC depth 24 must PASS (it never looks that
