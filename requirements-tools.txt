@@ -15,5 +15,3 @@ edalize==0.6.8
 wavedrom==2.0.3.post3        # timing diagrams from text
 reuse==6.3.0                 # SPDX / license header check (make license)
 ruff==0.17.5                 # Python lint for scripts/
-codespell==2.4.3
-pre-commit==4.7.0

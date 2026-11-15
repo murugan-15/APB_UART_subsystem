@@ -37,14 +37,14 @@ Design rules:
 | p16_struct_port | packed struct from a package on a module port; named assignment patterns are not portable | verilator, iverilog, yosys-synth, verilator-twin, verilator-named-pattern, iverilog-named-pattern, yosys-named-pattern |
 | p17_coverage_report | Verilator coverage → lcov → HTML; a never-taken branch shows count 0 | verilator-lcov |
 | p18_equivalence | eqy proves an equivalent refactor and reports a planted difference | eqy |
-| p19_mutation | mcy: a checking testbench covers most of 40 mutations, a blind one covers none | mcy |
+| p19_mutation | mcy: a checking testbench covers 38 of 40 mutations (seed fixed), a blind one covers none | mcy |
 | p20_line_monitor | sigrok-cli's UART decoder reads the bytes on a simulated `tx` pin; a wrong baud rate does not decode | sigrok |
-| p21_register_gen | PeakRDL: C header, Markdown and a reference register block from SystemRDL; overlapping offsets are rejected | peakrdl |
-| p22_second_frontend | slang compiles a legal file and rejects a double-driven variable that Icarus accepts | slang, iverilog (known FAIL) |
-| p23_style_lint | svlint with `.svlint.toml` passes a conforming file and reports three planted violations | svlint |
+| p21_register_gen | PeakRDL: C header, Markdown and a reference register block from SystemRDL; overlapping offsets are rejected; Icarus and Yosys must reject the generated block | peakrdl |
+| p22_second_frontend | slang compiles a legal file and rejects a double-driven variable (with elaboration alone it does not); Icarus accepts the same file, Verilator rejects it | slang, iverilog (known FAIL), verilator |
+| p23_style_lint | svlint with `.svlint.toml` passes a conforming file and reports a planted violation of every rule it switches on; an empty rule file reports none | svlint |
 | p24_tb_lint | the lint warnings the testbench rules rely on fire: a static initializer in a loop, an implicit width extension, and (under `-Wall` only) a declaration initializer on a procedurally assigned variable | verilator-implicitstatic, verilator-width, verilator-procassinit |
 | p25_mailbox | classes, queues and a mailbox between a producer and a consumer | verilator, iverilog (known FAIL) |
-| p26_covergroup | bins and a cross are counted: partial coverage, then 100 from `get_inst_coverage()`; the type-level query is pinned as a gap | verilator, verilator-type-coverage (known FAIL), iverilog (known FAIL) |
+| p26_covergroup | bins and a cross are counted: 37.5 after one sample, then 100 from `get_inst_coverage()`; the type-level query is pinned as a gap | verilator, verilator-type-coverage (known FAIL), iverilog (known FAIL) |
 | p27_fst_dump | both simulators write a real FST file | verilator, iverilog |
 
 Changing the baseline: inspect `build/probe/diff.txt`, explain the change

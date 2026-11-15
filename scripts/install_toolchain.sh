@@ -10,7 +10,7 @@
 #
 # Usage: sudo scripts/install_toolchain.sh [PREFIX]   (default /opt/eda)
 # Then:  export PATH=/opt/eda/bin:$PATH
-# Takes ~30-40 min on 4 cores the first time. Logs land in $BUILD/<tool>.log.
+# Takes an estimated 40-60 min on 4 cores the first time (not timed end to end). Logs land in $BUILD/<tool>.log.
 # A tool already installed at its pinned version is skipped, so the script can
 # be re-run after a version bump or to add the tools of D-013.
 set -euo pipefail

@@ -12,11 +12,13 @@ jobs:
   documents-and-scripts:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683   # v4.2.2
       - name: Install the checkers (versions pinned in requirements-tools.txt)
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck
+          # Ubuntu 24.04 ships shellcheck 0.9.0 (conventions section 1.1); another version fails here.
+          shellcheck --version | grep -q '^version: 0.9.0$'
           pip install -q "$(grep -E '^reuse==' requirements-tools.txt | cut -d' ' -f1)" \
                          "$(grep -E '^ruff==' requirements-tools.txt | cut -d' ' -f1)"
       - name: Documents agree with each other and the repository
@@ -24,6 +26,7 @@ jobs:
       - name: License information on every file
         run: make license
       - name: Shell scripts
+        # tb/probes/mac_suite/probe.sh is the original suite, kept unedited (one SC2294 warning).
         run: shellcheck -S warning scripts/*.sh tb/probes/p19_mutation/test_sim.sh
       - name: Python scripts
         run: ruff check --select F,E9,B scripts/*.py

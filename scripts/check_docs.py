@@ -5,11 +5,13 @@
 
 Checks (each prints one line per problem; exit 1 if any):
   1. every decision record has all eight fields and a date, and the ids run D-001, D-002, ...
-  2. every D-NNN, BUG-NNN and probe pNN cited in docs/ and tb/probes/README.md exists
+  2. every D-NNN, BUG-NNN and probe pNN cited in docs/, README.md and tb/probes/README.md exists
+     (bug_log.md is not searched for probes: its first entries use the Mac suite's numbers)
   3. every probe directory appears in scripts/probe.sh, tb/probes/expected.txt and the README table
-  4. every numbered rule of conventions section 2.2 cites a probe or a bug
+  4. every numbered rule of conventions section 2.2 cites a probe or a bug-log entry
   5. conventions section 7 and the Makefile list the same implemented targets
-  6. conventions, project_status and the README quote the probe baseline that expected.txt holds
+  6. conventions, project_status and the README quote the probe baseline that expected.txt holds:
+     PASS, FAIL and UNAVAIL counts, the number of checks, and (conventions, README) of probes
 
   scripts/check_docs.py            check the repository
   scripts/check_docs.py --selftest plant one error per check in memory; each must be reported
@@ -46,7 +48,7 @@ def check(t):
     known_p = {p[:3] for p in t['probes']}
     conv_rules = t['conv'].split('### 2.3')[0] + t['conv'].split('## 3. RTL')[-1]      # 2.3 and 2.4 cite the Mac suite's own probe numbers
     for name, text in (('conventions.md', t['conv']), ('project_status.md', t['st']), ('decisions.md', t['dec']),
-                       ('bug_log.md', t['bug']), ('tb/probes/README.md', t['readme'])):
+                       ('bug_log.md', t['bug']), ('tb/probes/README.md', t['readme']), ('README.md', t['top'])):
         for d in sorted(set(re.findall(r'\bD-\d{3}\b', text))):
             if d not in ids:
                 probs.append(f'2 {name}: cites {d}, which is not in decisions.md')
@@ -54,7 +56,7 @@ def check(t):
             if f'### {b}' not in t['bug']:
                 probs.append(f'2 {name}: cites {b}, which is not in bug_log.md')
         body = conv_rules if name == 'conventions.md' else text
-        if name in ('conventions.md', 'project_status.md', 'tb/probes/README.md'):
+        if name != 'bug_log.md':
             for p in sorted(set(re.findall(r'\bp\d\d(?=\b|_)', body))):       # p16 and p16_struct_port alike
                 if p not in known_p:
                     probs.append(f'2 {name}: cites probe {p}, which has no directory in tb/probes/')
@@ -75,13 +77,16 @@ def check(t):
         probs.append(f'5 make {name}: in the Makefile but not in conventions section 7')
     n_pass, n_fail, n_un = (len(re.findall(rf' {k}$', t['exp'], re.M)) for k in ('PASS', 'FAIL', 'UNAVAIL'))
     base = f'{n_pass} PASS / {n_fail} FAIL'
-    for name, text in (('conventions.md', t['conv']), ('project_status.md', t['st']), ('README.md', t['top'])):
-        if base not in text:
-            probs.append(f'6 {name}: does not quote the baseline in expected.txt ({base} / {n_un} UNAVAIL)')
     total = n_pass + n_fail + n_un
-    for phrase in (f'over {total} checks', f'{len(t["probes"])} small tests'):
-        if phrase not in t['top']:
-            probs.append(f'6 README.md: does not say "{phrase}"')
+    # the UNAVAIL count is written "0 UNAVAIL", or "known tool limits / 0 UNAVAIL" in project_status
+    full = re.compile(rf'{n_pass} PASS / {n_fail} FAIL(?: known tool limits)? / {n_un} UNAVAIL\S* \(?(?:over )?{total} checks')
+    for name, text in (('conventions.md', t['conv']), ('project_status.md', t['st']), ('README.md', t['top'])):
+        if not full.search(text):
+            probs.append(f'6 {name}: does not quote the baseline in expected.txt ({base} / {n_un} UNAVAIL over {total} checks)')
+    for name, text, phrase in (('README.md', t['top'], f'{len(t["probes"])} small tests'),
+                               ('conventions.md', t['conv'], f'{total} checks, {len(t["probes"])} probes')):
+        if phrase not in text:
+            probs.append(f'6 {name}: does not say "{phrase}"')
     return probs, (len(ids), len(t['probes']), len(rules), base)
 
 
@@ -97,6 +102,9 @@ def mutations(t):
         ('a rule with no probe', 'conv', '(p03)', '', '4'),
         ('a target claimed but not implemented', 'mk', 'license:', 'licence:', '5'),
         ('a stale baseline', 'st', base, '1 PASS / 1 FAIL', '6'),
+        ('a stale number of checks', 'conv', re.search(r'\((\d+ checks), \d+ probes', t['conv']).group(1), '1 checks', '6'),
+        ('a probe that does not exist, cited by a decision', 'dec', 'p17 to p23', 'p17 to p93', '2'),
+        ('a decision that does not exist, cited by the README', 'top', 'D-003', 'D-903', '2'),
     ]
 
 

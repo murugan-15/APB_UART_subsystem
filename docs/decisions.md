@@ -200,13 +200,14 @@ Decision:      The UVM testbench of the v1.0 cut is built and run with the pinne
 Alternatives:  Keep UVM on EDA Playground only (D-003's impact line); drop UVM.
 Reason:        A result on EDA Playground cannot be rerun from this repository or by CI, so it
                could not meet the evidence rule. Probe p15 shows UVM 2020 with its DPI layer
-               compiles and runs on Verilator 5.050 with 0 warnings and 0 errors, in about two
-               minutes of build time. The same probe pins one trap: a `uvm_error` leaves the
+               compiles and runs on Verilator 5.050 with 0 warnings and 0 errors. The library
+               build takes minutes, not seconds, so the three p15 checks share one build. The same probe pins one trap: a `uvm_error` leaves the
                exit code at 0.
 Impact:        `scripts/install_toolchain.sh`; probe p15 (three checks); conventions rules 8 and
                14; the "EDA Playground for the UVM port" dependency in D-003 no longer blocks
-               v1.0. Accellera's own `uvm-core` 2020.3.1 is not used: its DPI layer has no
-               Verilator backend.
+               v1.0. Accellera's own `uvm-core` is not used: its DPI layer has backends for
+               VCS, Questa and Xcelium only (`src/dpi/uvm_hdl.c` line 33 of
+               github.com/accellera-official/uvm-core at commit 78c0654, read 2026-11-15).
 Decided by:    me
 Supersedes:    D-003, only its dependency on EDA Playground for the UVM port
 
@@ -228,8 +229,11 @@ Reason:        The standard needs checks the six original tools cannot make: a s
                the SystemVerilog, style rules, a readable coverage report, proof that the tests
                find planted bugs, equivalence of two versions of a block, generated register
                documents, and a line monitor that shares nothing with the RTL. All are free,
-               run on the cloud host and in a CI image, and each has a probe with a run that
-               must fail (p17 to p23), so `make probe` shows on any host that they really check.
+               run on the cloud host and in a CI image. mcy, eqy, slang, svlint, PeakRDL and
+               sigrok-cli each have a probe with a run that must fail (p18 to p23); lcov has p17,
+               whose evidence is a branch that must show count 0. reuse is checked by
+               `make license`. FuseSoC and WaveDrom are installed but have no probe yet: each
+               gets one before its first use (conventions §1.1).
 Impact:        `scripts/install_toolchain.sh`, `requirements-tools.txt`, `.svlint.toml`,
                `scripts/slang_check.py`, `scripts/vcd_pin.py`, probes p17 to p23, conventions
                §1.1, §2.1 and rules 14 to 18. Probe baseline re-accepted: 40 PASS / 17 FAIL /
@@ -244,10 +248,11 @@ Date:          2026-11-15
 Phase:         1
 Decision:      Every file carries SPDX license and copyright information: a header in each code
                file, and a `REUSE.toml` entry for documents, probe baselines, placeholder files
-               and the original Mac probe suite. `make license` runs `reuse lint`; CI runs it
-               from Gate 9.
+               and the original Mac probe suite. `make license` runs `reuse lint`; the light CI workflow
+               runs it on every push (D-015).
 Alternatives:  Headers from the first RTL file on only (D-009's impact line).
-Reason:        59 of the 67 tracked files had no license information, and a reviewer or a tool
+Reason:        None of the 67 tracked files carried an SPDX header (only `LICENSE` held the
+               license text), and a reviewer or a tool
                reading one file cannot see the repository's `LICENSE`. The REUSE check makes the
                rule mechanical.
 Impact:        `REUSE.toml`, `LICENSES/Apache-2.0.txt`, headers in 56 code files, Makefile target,
@@ -258,15 +263,18 @@ Supersedes:    D-009, only its "from the first RTL file on" scope
 ### D-015 — Quality rules for every artifact; light CI now
 Date:          2026-11-15
 Phase:         1 (applies to every later gate)
-Decision:      Seven rules hold for every artifact from now on: every number is computed by a
+Decision:      Eight rules hold for every artifact from now on: every number is computed by a
                script and names its basis; a check counts only after it has been seen to fail on
                a planted error; every new or changed artifact is read by a second, independent
                reviewer before approval; every bug leaves a check and a planted error that proves
                the check; a decision triggers a sweep of everything that assumed otherwise;
                nothing a check depends on lives outside the repository; a result is evidence only
-               on the pinned tool versions. Each gate exit also needs an acceptance sample of
+               on the pinned tool versions; evidence is produced first, then the numbers by script,
+               then the text. Each gate exit also needs an acceptance sample of
                its documents read by the second reader with no error found (150 items; 300 for
-               release documents). A light CI workflow runs the document, license and script
+               release documents; an item is one checkable statement, such as a requirement, a
+               table row, a numbered rule or a paragraph, and a set with fewer items is read in
+               full). A light CI workflow runs the document, license and script
                checks on every push now, ahead of the Gate 9 image.
 Alternatives:  Keep adding one check per error after it is found; rely on the author rereading;
                wait for Gate 9 before anything runs automatically; a sample of 60 items.
@@ -276,8 +284,9 @@ Reason:        Checks written after each error catch that error again, not the n
                it. With no error found, a sample of 150 bounds the remaining error rate below
                2.0 % and one of 300 below 1.0 %, at 95 % confidence; 60 would bound it only
                below 4.9 %.
-Impact:        `docs/conventions.md` rules 18 and 20 to 23 and §8; `.github/workflows/checks.yml`;
-               `scripts/check_docs.py`. The controls for later gates (requirement checks,
+Impact:        `docs/conventions.md` rules 20 to 23 and §8 (rule 18, from D-013, already states
+               the seen-to-fail rule for probes); `.github/workflows/checks.yml`;
+               `scripts/check_docs.py`; ruff and shellcheck in the light CI. The controls for later gates (requirement checks,
                generated traceability, named mutants, report stamps, the claims check) are built
                at their gates.
 Decided by:    me

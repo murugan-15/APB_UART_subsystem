@@ -31,6 +31,8 @@ into `/opt/eda` (the Makefile puts `/opt/eda/bin` on `PATH`).
 | lcov | 2.0 (Ubuntu 24.04 package) | HTML coverage report from Verilator's coverage data |
 | sigrok-cli | 0.7.2 (Ubuntu 24.04 package) | UART decoder used as an independent line monitor, in simulation and at bring-up |
 | reuse | 6.3.0 | SPDX / license header check (`make license`) |
+| ruff | 0.17.5 | Python lint for `scripts/` (light CI, D-015) |
+| shellcheck | 0.9.0 (Ubuntu 24.04 package) | Shell lint for `scripts/` (light CI, D-015) |
 | FuseSoC, Edalize | 2.4.7, 0.6.8 | IP packaging (Gate 11). Installed; add a probe before the first `.core` file |
 | WaveDrom | 2.0.3 | Timing diagrams from text. Installed; add a probe before the first diagram |
 
@@ -38,8 +40,10 @@ The Python tools are pinned in `requirements-tools.txt`; lcov, sigrok-cli and ga
 `scripts/install_toolchain.sh` skips a tool that is already at its pinned version and exits
 nonzero if any step fails.
 
-Probe baseline: **47 PASS / 20 FAIL / 0 UNAVAIL** (67 checks, 27 probes, after milestone M0b added
-p25 to p27 on 2026-11-15; before M0b 43 / 17 / 0 over 60 checks; re-accepted 2026-11-15
+Probe baseline: **48 PASS / 20 FAIL / 0 UNAVAIL** (68 checks, 27 probes, after the second reader's
+review of 2026-11-15 added a Verilator check to p22 and made p15, p19, p21, p22, p23 and p26 assert
+what this file quotes; 47 / 20 / 0 over 67 checks after milestone M0b added p25 to p27 the same
+day; before M0b 43 / 17 / 0 over 60 checks; re-accepted 2026-11-15
 when D-011 to D-013 added p16 to p23 and turned p15 from UNAVAIL into three checks, 40 / 17 / 0
 over 57 checks, and again the same day when p24 gave rules 7 and 19 a probe. Until then:
 26 / 13 / 1 over 40 checks). Every FAIL below is a confirmed tool limitation (log read, cause
@@ -98,12 +102,12 @@ installed there, and must fail with a clear message if the environment is missin
 | A `uvm_error` → nonzero exit | ❌ exits 0; the report counts show it | — | — | p15 |
 | Packed struct (package typedef) on a module port | ✅ | ✅ | ✅ synth | p16 |
 | Named assignment pattern `'{member: value}` | ✅ | ❌ syntax error | ❌ syntax error | p16 |
-| A variable written by `always_ff` and by a second process (illegal, IEEE 1800 9.2.2.4) | lint warning MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it) |
+| A variable written by `always_comb` and by a second process (illegal: Verilator's message names IEEE 1800-2023 9.2.2.2; the clause itself has not been read, the standard is not among the project's references) | ✅ rejected, MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it, but only with its analysis pass) |
 | Initializer on a variable declared in a procedural block (static: set once) | ✅ rejected, IMPLICITSTATIC | — | — | p24 |
 | Implicit width extension | ✅ rejected, WIDTHEXPAND | — | — | p24 |
 | Declaration initializer on a variable a process also assigns | accepted by default; rejected under `-Wall` (PROCASSINIT) | — | — | p24 |
 | Classes with a `mailbox` between two processes | ✅ | ❌ syntax error | — | p25 |
-| `covergroup` / `coverpoint` / `cross`, queried with `get_inst_coverage()` | ✅ partial 37.5, then 100 | ❌ syntax error | — | p26 |
+| `covergroup` / `coverpoint` / `cross`, queried with `get_inst_coverage()` | ✅ 37.5 after one sample (3 of the 8 bins), then 100. Whether IEEE 1800 defines 37.5 or the average over the three items (41.7) has not been checked against the standard | ❌ syntax error | — | p26 |
 | Type-level `get_coverage()` | ❌ returns 0 with every bin hit | — | — | p26 |
 | FST waveform dump | ✅ `--trace-fst` (needs `liblz4-dev`) | ✅ `vvp -fst` | — | p27 |
 
@@ -115,9 +119,9 @@ Other tools (D-013):
 | Equivalent refactor proved; a dropped input bit reported | eqy (sby, Yices) | ✅ | p18 |
 | Mutation coverage: a checking testbench covers 38 of 40 mutations, a blind one 0 of 40 (seed fixed in the probe; mcy otherwise seeds from the clock) | mcy (Yosys `mutate`, Icarus) | ✅ | p19 |
 | Bytes on a simulated `tx` pin decoded by third-party code; a wrong baud rate does not decode | sigrok-cli UART decoder on a VCD through `scripts/vcd_pin.py` | ✅ | p20 |
-| C header, Markdown and a reference register block from SystemRDL; overlapping offsets rejected | PeakRDL | ✅ (the generated block needs `-Wno-MULTIDRIVEN` under Verilator) | p21 |
-| Legal file compiles; a double-driven variable is an error | slang | ✅ | p22 |
-| Project rule file passes a conforming file and reports three planted violations | svlint | ✅ | p23 |
+| C header, Markdown and a reference register block from SystemRDL; overlapping offsets rejected | PeakRDL | ✅ (the generated block needs `-Wno-MULTIDRIVEN` under Verilator; Icarus and Yosys reject it) | p21 |
+| Legal file compiles; a double-driven variable is an error with the analysis pass and goes unreported with elaboration alone | slang | ✅ | p22 |
+| Project rule file passes a conforming file and reports a planted violation of each of its 14 rules; with an empty rule file the same violations pass | svlint | ✅ | p23 |
 
 ### 2.2 Rules
 
@@ -132,7 +136,7 @@ Other tools (D-013):
    with a named assignment pattern. Interfaces and virtual interfaces belong
    in `tb/`, where class-based benches are Verilator-only (rule 6). Icarus
    rejects an interface port anywhere in the hierarchy, not only at the top.
-   (p02, p16; `.svlint.toml` enforces it)
+   (p02, p16; `.svlint.toml` enforces it, p23)
 3. **Parameter checks:** `if (bad) begin : g_chk $error("single literal"); end`.
    No format arguments. (p08)
 4. **No blanket `-Wno-fatal`.** Silence specific lint codes locally. If a flow
@@ -172,7 +176,7 @@ Other tools (D-013):
 13. **Report BMC results as "no failure up to depth N".** Only a passing
     `mode prove` counts as "proved". (p14)
 
-**Tools added by D-012 and D-013:**
+**Tools added by D-012 and D-013 (rule 19: D-016):**
 
 14. **UVM runs on Verilator** with the uvm-verilator kit and its DPI file
     (`--vpi`, `$UVM_HOME/src/dpi/uvm_dpi.cc`). Lint is switched off for the
@@ -183,14 +187,21 @@ Other tools (D-013):
 16. **A second front end and a style linter read the RTL:** slang through
     `scripts/slang_check.py` (it must run slang's analysis pass, or a
     double-driven variable goes unreported) and svlint with `.svlint.toml`
-    (with no rule file svlint checks nothing). (p22, p23)
+    (svlint checks only the rules its rule file lists: with an empty rule
+    file it reports nothing, and with no rule file at all version 0.9.5
+    switches every rule on, so the file is always passed with `-c`).
+    (p22, p23)
 17. **The PeakRDL reference register block** is generated with
     `--cpuif apb3-flat --default-reset arst_n --err-if-bad-addr` and is
-    simulation-only: Icarus cannot compile it, and under Verilator it needs
-    `-Wno-MULTIDRIVEN` for that block alone. (p21, D-007)
+    simulation-only, on Verilator: Icarus and Yosys both reject it, and
+    under Verilator it needs `-Wno-MULTIDRIVEN` for that block alone. So it
+    cannot be compared with the hand-written block by eqy; the comparison
+    is made in simulation. (p21, D-007)
 18. **Every new check is shown failing once** before it is relied on: each
-    probe above keeps a file or a run that must fail. A tool that reports
-    nothing may simply not be looking. (p15 to p24)
+    probe from p15 to p26 keeps a file or a run that must fail, except
+    p17 (its evidence is a branch that must show count 0), p25 and p27
+    (ports of the original suite: a feature works or does not). A tool
+    that reports nothing may simply not be looking. (p15 to p26)
 19. **PROCASSINIT stays on for `rtl/`** (D-016). `-Wall` on Verilator 5.050
     enables it (a declaration initializer on a variable that a process also
     assigns); in RTL, reset sets state, not an initializer (D-001). It is
@@ -208,7 +219,9 @@ Other tools (D-013):
     fail on each) and mcy's random mutations. (p19)
 22. **Every report is stamped** with the command, the tool versions and the
     commit, and counts as evidence only on the pinned versions of §1.1.
-    (p24 shows a result that depends on the version)
+    (p24: PROCASSINIT is reported only under `-Wall`. Ubuntu 24.04's
+    Verilator 5.020 does not report it at all; that was seen by hand on
+    2026-11-15 and is not pinned by a probe, since one version is installed)
 23. **Nothing is claimed without a report:** a sentence in the README, the
     datasheet or the changelog that holds a number or says verified, proved,
     covered, passes or meets timing links to a file in `build/reports/` or
@@ -225,7 +238,7 @@ results. The table below keeps the Mac suite's own probe numbers.
 | Construct | Needed for | Verilator 5.050 | Icarus 13.0 | Yosys/sby | Fallback if unsupported |
 |---|---|---|---|---|---|
 | Classes, queues, mailboxes | Modular TB (transaction/driver/monitor/scoreboard) | **PASS** incl. inheritance + virtual dispatch [p01] | **FAIL** — syntax error at `mailbox #(txn)` [p01] | n/a | Struct-based transactions + tasks (only if the TB must run on Icarus) |
-| `covergroup` / `coverpoint` / `cross` | Functional coverage | **PASS with caveats** — bins + cross counted; `get_inst_coverage()` correct (37.5 → 100). Type-level `get_coverage()` returns 0 even when bins are hit; `cg.cp.get_coverage()` does not compile [p03] | **FAIL** — syntax error [p03] | n/a | Query with `get_inst_coverage()` only; per-coverpoint numbers from `coverage.dat` (`--coverage`) |
+| `covergroup` / `coverpoint` / `cross` | Functional coverage | **PASS with caveats** — bins + cross counted; `get_inst_coverage()` returns 37.5, then 100. Type-level `get_coverage()` returns 0 even when bins are hit; `cg.cp.get_coverage()` does not compile [p03] | **FAIL** — syntax error [p03] | n/a | Query with `get_inst_coverage()` only; per-coverpoint numbers from `coverage.dat` (`--coverage`) |
 | `--coverage` (line/toggle) | Code coverage | **PASS** — `coverage.dat` written; `verilator_coverage --annotate` shows the never-taken branch at count 0 [p07] | n/a | n/a | — |
 | FST waveform dump | Debug in Surfer | **PASS** with `--trace-fst` **plus** `-CFLAGS -I/opt/homebrew/include -LDFLAGS -L/opt/homebrew/lib` (the FST writer needs `lz4.h`; Apple clang does not search Homebrew paths) [p08] | **PASS** with `vvp -fst` (corrects the earlier "VCD only") [p08] | n/a | VCD |
 
@@ -357,7 +370,7 @@ save the decoded log under `build/reports/bringup/`. That is hard evidence for t
 | `make bringup` | Capture + decode UART with `sigrok-cli` | `build/reports/bringup/` | planned |
 | `make vivado` | Tier 3: `vivado -mode batch -source scripts/vivado_build.tcl` (x86 machine only) | `build/reports/vivado/` | planned |
 | `make license` | `reuse lint`: every file has SPDX license and copyright information | exits nonzero on a missing header | yes |
-| `make check-docs` | `scripts/check_docs.py`: decision records complete; every cited decision, bug and probe exists; every rule cites a probe; this table matches the Makefile; the quoted baseline matches `expected.txt`. Runs its self-test first | exits nonzero on any disagreement | yes |
+| `make check-docs` | `scripts/check_docs.py`: decision records complete; every cited decision, bug and probe exists; every rule cites a probe or a bug-log entry; this table matches the Makefile; the quoted baseline matches `expected.txt`. Runs its self-test first | exits nonzero on any disagreement | yes |
 | `make clean` | Removes `build/` only | — | yes |
 
 Every random seed used is printed and logged; `make sim TEST=x SEED=n` must reproduce a

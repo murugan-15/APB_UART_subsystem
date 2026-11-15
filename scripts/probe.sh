@@ -182,7 +182,8 @@ vl_uvm() {
   local bin
   bin=$(uvm_bin | tail -1) && [ -x "$bin" ] || return 1
   timeout "$SIM_TIMEOUT" "$bin" >sim.log 2>&1
-  sim_verdict $? && uvm_report_clean
+  # Conventions section 2.1 quotes "0 warnings, 0 errors": the warning count is checked too.
+  sim_verdict $? && uvm_report_clean && grep -Eq '^UVM_WARNING : +0$' sim.log
 }
 # Anti-vacuity, part 1: a planted uvm_error should make the run exit nonzero.
 # It does not (the run still exits 0), so this check is a known FAIL.
@@ -248,9 +249,10 @@ mcy_dual() {
   weak=$(mcy_tags "-DWEAK") || return 1
   echo "checking testbench: $good"
   echo "blind testbench:    $weak"
-  # The checking testbench covers most mutations; the blind one covers none.
+  # The checking testbench covers 38 of the 40 mutations (the seed is fixed in the probe,
+  # so the count is the one the documents quote); the blind one covers none.
   set -- $good
-  [ "$2" -ge 30 ] || return 1
+  [ "$2" -eq 38 ] && [ "$4" -eq 2 ] || return 1
   set -- $weak
   [ "$2" -eq 0 ] && [ "$4" -eq 40 ]
 }
@@ -284,6 +286,18 @@ rdl_dual() {
   # struct from different always_ff blocks, which Verilator reports per whole struct.
   verilator --lint-only -Wno-MULTIDRIVEN rb/p21_regs_pkg.sv rb/p21_regs.sv --top-module p21_regs || return 1
   python3 "$ROOT/scripts/slang_check.py" rb/p21_regs_pkg.sv rb/p21_regs.sv || return 1
+  # Rule 17 says the block is simulation-only on Verilator: Icarus and Yosys must both
+  # reject it. If either starts to accept it, this check fails and the rule is re-read.
+  if iverilog -g2012 -o /dev/null rb/p21_regs_pkg.sv rb/p21_regs.sv >iverilog.log 2>&1; then
+    echo "Icarus now compiles the generated block"
+    return 1
+  fi
+  head -3 iverilog.log
+  if yosys -q -p "read_verilog -sv rb/p21_regs_pkg.sv rb/p21_regs.sv" >yosys.log 2>&1; then
+    echo "Yosys now reads the generated block"
+    return 1
+  fi
+  tail -2 yosys.log
   # Anti-vacuity: two registers at one offset must be rejected.
   if peakrdl c-header overlap.rdl -o overlap.h >overlap.log 2>&1; then
     cat overlap.log
@@ -300,8 +314,13 @@ slang_dual() {
     return 1
   fi
   cat bad.log
-  grep -q 'error' bad.log
+  grep -q 'error' bad.log || return 1
+  # Rule 16: the error comes from slang's analysis pass. With elaboration alone the same
+  # file must pass; if it stops passing, the rule's reason is out of date.
+  python3 "$ROOT/scripts/slang_check.py" --elaborate-only bad.sv
 }
+# The same illegal file under Verilator: lint must fail and name MULTIDRIVEN.
+vl_reject_bad() { vl_lint_rejects MULTIDRIVEN bad.sv; }
 # The same illegal file under Icarus: pinned, because Icarus accepts it.
 iv_reject_bad() {
   if iverilog -g2012 -o /dev/null bad.sv >bad.log 2>&1; then
@@ -312,14 +331,22 @@ iv_reject_bad() {
 
 # ------------------------------------------------------- p23 style lint -----
 svlint_dual() {
+  local rule missing=0
   svlint -c "$ROOT/.svlint.toml" clean.sv || return 1
   if svlint -c "$ROOT/.svlint.toml" twin.sv >twin.log 2>&1; then
     cat twin.log
     return 1
   fi
-  cat twin.log
-  grep -q 'blocking_assignment_in_always_ff' twin.log && grep -q 'default_nettype_none' twin.log \
-    && grep -q 'keyword_forbidden_always' twin.log
+  grep 'Fail' twin.log
+  # Every rule the rule file switches on must be reported on the twin.
+  for rule in $(sed -n '/^\[syntaxrules\]/,$p' "$ROOT/.svlint.toml" | grep -oE '^[a-z_]+ = true' | cut -d' ' -f1); do
+    grep -Eq "Fail.*: $rule\$" twin.log || { echo "rule $rule: not reported on twin.sv"; missing=1; }
+  done
+  [ "$missing" -eq 0 ] || return 1
+  # A rule that the rule file does not list is not checked: with an empty rule file the
+  # same twin passes. (With no rule file at all svlint 0.9.5 enables every rule.)
+  : >empty.toml
+  svlint -c empty.toml twin.sv
 }
 
 # ------------------------------------------------------- p24 lint warnings ---
@@ -433,6 +460,7 @@ check p20_line_monitor       sigrok         sigrok-cli vl_line_monitor
 check p21_register_gen       peakrdl        peakrdl   rdl_dual
 check p22_second_frontend    slang          python3   slang_dual
 check p22_second_frontend    iverilog       iverilog  iv_reject_bad
+check p22_second_frontend    verilator      verilator vl_reject_bad
 check p23_style_lint         svlint         svlint    svlint_dual
 
 check p24_tb_lint            verilator-implicitstatic verilator vl_lint_rejects IMPLICITSTATIC static_init.sv

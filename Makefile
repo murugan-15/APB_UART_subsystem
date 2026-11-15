@@ -7,7 +7,7 @@ export PATH := $(EDA)/bin:$(PATH)
 .PHONY: help toolchain probe probe-accept probe-mac license check-docs clean
 
 help:
-	@echo "make toolchain     build pinned EDA tools into $(EDA) (sudo, ~40 min)"
+	@echo "make toolchain     build pinned EDA tools into $(EDA) (sudo, est. 40-60 min)"
 	@echo "make probe         run M0 capability probes, diff against baseline"
 	@echo "make probe-accept  overwrite the baseline with the latest results"
 	@echo "make probe-mac     run the original Mac M0 suite (tb/probes/mac_suite)"
@@ -26,11 +26,11 @@ probe:
 probe-accept:
 	cp build/probe/results.txt tb/probes/expected.txt
 
-# Original Mac M0 suite, kept separately until M0b ports it (tb/probes/mac_suite/README.md).
+# Original Mac M0 suite, kept as a separate suite; M0b ported its four extra constructs (tb/probes/mac_suite/README.md).
 probe-mac:
 	bash tb/probes/mac_suite/probe.sh
 
-# Every tracked file must carry SPDX license and copyright information (D-009).
+# Every tracked file must carry SPDX license and copyright information (D-009, D-014).
 license:
 	reuse lint
 

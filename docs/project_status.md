@@ -38,8 +38,8 @@ Status: pass / fail / not run / not applicable, with evidence.
 
 | Gate | Check | Candidate tools / structure | Status |
 |---|---|---|---|
-| 0 | Pinned toolchain, probe baseline, PLANS §2 skeleton | Verilator, Icarus, Yosys, sby, Yices, Z3; `make probe` | pass (2026-10-10) |
-| 1 | Tools for the later gates chosen and probed before anything relies on them (D-011 to D-014) | uvm-verilator, mcy, eqy, svlint, slang, PeakRDL, lcov, sigrok-cli, reuse; probes p15 to p24; `make license` | pass (2026-11-15): `make probe` 47 / 20 / 0 matches the new baseline; `reuse lint` and `make check-docs` pass |
+| 0 | Pinned toolchain, probe baseline, repository skeleton | Verilator, Icarus, Yosys, sby, Yices, Z3; `make probe` | pass (2026-10-10) |
+| 1 | Tools for the later gates chosen and probed before anything relies on them (D-011 to D-014) | uvm-verilator, mcy, eqy, svlint, slang, PeakRDL, lcov, sigrok-cli, reuse; probes p15 to p27; `make license` | pass (2026-11-15): `make probe` 48 / 20 / 0 matches the new baseline; `reuse lint` and `make check-docs` pass |
 | 2 | Requirements traceable by ID | `docs/spec.md` with REQ-* IDs | not run |
 | 3 | One register description generating docs and C header (D-007); board test sequencer designed (D-008) | SystemRDL + PeakRDL (`rdl/`, probed in p21); `rtl/board/` | not run |
 | 4 | Verification plan names a tool per check | `docs/verification_plan.md` | not run |
@@ -54,10 +54,10 @@ Status: pass / fail / not run / not applicable, with evidence.
 
 | Check | Status | Command | Evidence |
 |---|---|---|---|
-| Probes | pass — matches baseline (47 PASS / 20 FAIL known tool limits / 0 UNAVAIL over 67 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
+| Probes | pass — matches baseline (48 PASS / 20 FAIL known tool limits / 0 UNAVAIL over 68 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
 | Probes, original Mac suite | pass — matches its baseline (26 PASS / 8 FAIL / 1 UNAVAILABLE), 2026-11-15, cloud host | `make probe-mac` | `build/reports/probes_mac.txt`; `tb/probes/mac_suite/README.md` |
 | License headers | pass — every file, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
-| Documents agree with each other and the repository | pass, self-test 7 of 7, 2026-11-15 | `make check-docs` | `scripts/check_docs.py` output |
+| Documents agree with each other and the repository | pass, self-test 10 of 10, 2026-11-15 | `make check-docs` | `scripts/check_docs.py` output |
 | Lint | not run | `make lint` (not implemented) | |
 | Regression | not run | `make regression` (not implemented) | |
 | Formal | not run | `make formal` (not implemented) | |
@@ -118,17 +118,20 @@ bugs** (lint, uninitialized state at step 0). Read the log before recording a FA
 - Icarus cannot run class / SVA / bind / constrained-random TBs, and a failing assertion does not
   change its exit code → Icarus is for plain directed portability benches only.
 
-Findings of 2026-11-15 (probes p15 to p24):
+Findings of 2026-11-15 (probes p15 to p27):
 
 - Icarus rejects an interface port anywhere in the hierarchy, and Icarus and Yosys reject named
   assignment patterns → no interfaces in RTL, struct members assigned one by one (D-011).
 - A `uvm_error` leaves the exit code at 0 → a UVM verdict reads the report counts (D-012).
-- svlint with no rule file checks nothing, and slang without its analysis pass misses a
-  double-driven variable → every tool check keeps a run that must fail (conventions rule 18).
-- Icarus accepts a variable written by `always_ff` and by a second process; Verilator warns
+- svlint checks only the rules its rule file lists (an empty file checks nothing), and slang
+  without its analysis pass misses a double-driven variable → every tool check keeps a run that must fail (conventions rule 18).
+- Icarus accepts a variable written by `always_comb` and by a second process; Verilator warns
   (MULTIDRIVEN) and slang rejects it.
-- Verilator 5.050 `-Wall` adds PROCASSINIT, which older versions do not have → results count
-  only on the pinned version.
+- Verilator 5.050 reports PROCASSINIT only under `-Wall` (p24). Ubuntu 24.04's 5.020 does not
+  report it at all (seen by hand, not pinned by a probe) → results count only on the pinned version.
+- Verilator's `get_inst_coverage()` returns bins hit over bins (37.5 for 3 of 8 in p26). Whether
+  IEEE 1800 defines that number or the average over coverpoints and crosses is not yet checked
+  against the standard → check it before Gate 4 names a coverage target.
 
 ## Decisions
 
@@ -143,7 +146,7 @@ See `docs/decisions.md` (D-001 to D-016).
 - [x] Port the four original-only probes — done 2026-11-15 (milestone M0b): mailbox p25,
       covergroup p26, FST dump p27, `--coverage` p17; the original suite stays in
       `tb/probes/mac_suite/`
-- [x] Delete the original-line branch — done 2026-10-14 (public repo now has `main` only)
+- [x] Delete the original-line branch — done 2026-10-14 (the public repo then had `main` only; review branches have been pushed since, and the throwaway `ci-must-fail-twin` is still to be deleted)
 - [ ] Async FIFO / separate UART clock (the only CDC content) — decide in Phase 3
 - [x] Register description — D-007 (SystemRDL for docs and header, hand-written RTL), 2026-10-23
 - [x] FPGA APB driver — D-008 (on-board test sequencer), 2026-10-23
