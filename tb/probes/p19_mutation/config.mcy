@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2026 murugan-15
 [options]
 size 40
+# A fixed seed: without it mcy seeds from the clock and the counts change from run to run.
+seed 20261115
 tags COVERED UNCOVERED
 
 [script]

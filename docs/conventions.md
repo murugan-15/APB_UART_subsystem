@@ -104,7 +104,7 @@ Other tools (D-013):
 |---|---|---|---|
 | Coverage data → lcov → HTML; a never-taken branch shows count 0 | Verilator `--coverage`, `verilator_coverage --write-info`, `genhtml` | ✅ | p17 |
 | Equivalent refactor proved; a dropped input bit reported | eqy (sby, Yices) | ✅ | p18 |
-| Mutation coverage: a checking testbench covers 38 of 40 mutations, a blind one 0 of 40 | mcy (Yosys `mutate`, Icarus) | ✅ | p19 |
+| Mutation coverage: a checking testbench covers 38 of 40 mutations, a blind one 0 of 40 (seed fixed in the probe; mcy otherwise seeds from the clock) | mcy (Yosys `mutate`, Icarus) | ✅ | p19 |
 | Bytes on a simulated `tx` pin decoded by third-party code; a wrong baud rate does not decode | sigrok-cli UART decoder on a VCD through `scripts/vcd_pin.py` | ✅ | p20 |
 | C header, Markdown and a reference register block from SystemRDL; overlapping offsets rejected | PeakRDL | ✅ (the generated block needs `-Wno-MULTIDRIVEN` under Verilator) | p21 |
 | Legal file compiles; a double-driven variable is an error | slang | ✅ | p22 |
