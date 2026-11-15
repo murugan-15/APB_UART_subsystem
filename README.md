@@ -34,7 +34,7 @@ make check-docs       # the documents agree with each other and with the reposit
 ```
 
 `make probe` must end with `Probe results match baseline.` The baseline is
-**47 PASS / 20 FAIL / 0 UNAVAIL** over 67 checks. Each FAIL is a known limitation of a tool, pinned
+**48 PASS / 20 FAIL / 0 UNAVAIL** over 67 checks. Each FAIL is a known limitation of a tool, pinned
 on purpose so that a tool update that changes it is noticed; the conventions say how the design
 works around each one.
 
