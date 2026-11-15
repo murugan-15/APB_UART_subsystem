@@ -1,4 +1,6 @@
-# M0 toolchain capability probes
+# Toolchain capability probes
+
+Suite M0 (p01 to p15, Gate 0) and the tool probes of D-011 to D-013 (p15 extended, p16 to p23).
 
 Run with `make probe`. Each check prints one line `probe check RESULT`;
 the set must match `expected.txt` exactly or `make probe` exits 1.
@@ -31,7 +33,15 @@ Design rules:
 | p12_bind | bound checker runs (bad check must fire) | verilator, iverilog, sby |
 | p13_assume_macro | `ASSUME` = assume in formal (load-bearing), assert in sim (fires on illegal stimulus) | verilator, verilator-fire, sby |
 | p14_bmc_vs_prove | BMC 24 misses a step-30 bug, PDR finds it, PDR proves a true property | sby |
-| p15_uvm | UVM compiles and runs | verilator (UNAVAIL without `UVM_HOME`) |
+| p15_uvm | UVM 2020 with its DPI layer compiles and runs on Verilator (uvm-verilator kit); a planted `uvm_error` shows in the report counts but not in the exit code | verilator, verilator-error-exit (known FAIL), verilator-error-report (UNAVAIL without the kit) |
+| p16_struct_port | packed struct from a package on a module port; named assignment patterns are not portable | verilator, iverilog, yosys-synth, verilator-twin, verilator-named-pattern, iverilog-named-pattern, yosys-named-pattern |
+| p17_coverage_report | Verilator coverage → lcov → HTML; a never-taken branch shows count 0 | verilator-lcov |
+| p18_equivalence | eqy proves an equivalent refactor and reports a planted difference | eqy |
+| p19_mutation | mcy: a checking testbench covers most of 40 mutations, a blind one covers none | mcy |
+| p20_line_monitor | sigrok-cli's UART decoder reads the bytes on a simulated `tx` pin; a wrong baud rate does not decode | sigrok |
+| p21_register_gen | PeakRDL: C header, Markdown and a reference register block from SystemRDL; overlapping offsets are rejected | peakrdl |
+| p22_second_frontend | slang compiles a legal file and rejects a double-driven variable that Icarus accepts | slang, iverilog (known FAIL) |
+| p23_style_lint | svlint with `.svlint.toml` passes a conforming file and reports three planted violations | svlint |
 
 Changing the baseline: inspect `build/probe/diff.txt`, explain the change
 in `docs/bug_log.md` or `docs/conventions.md`, then `make probe-accept`.

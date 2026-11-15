@@ -169,3 +169,88 @@ Reason:        Reviewers can see, rerun (in a fork or Codespace) and reproduce e
 Impact:        `.github/workflows/`, `.devcontainer/`, container image name in conventions §8.
 Decided by:    me
 Supersedes:    none
+
+### D-011 — No SystemVerilog interfaces in synthesizable RTL
+Date:          2026-11-15
+Phase:         1 (applies from the first RTL file, Gate 5)
+Decision:      Conventions rule 2 is rewritten. Every port in `rtl/` is a plain signal or a
+               packed struct typedef'd in the package; struct members are assigned one by one.
+               Interfaces and virtual interfaces are used only in `tb/`.
+Alternatives:  Keep the old rule (interfaces allowed inside the hierarchy, plain ports at the
+               top); allow interfaces and drop Icarus as the second simulator.
+Reason:        The old rule contradicted its own probe: p02 uses an interface only inside the
+               hierarchy, and Icarus 13.0 still rejects it at the submodule ports, so any
+               internal interface breaks "RTL must pass all three tools". Plain ports are also
+               what an integrator, a synthesis flow, an FPGA top and PeakRDL's flat APB option
+               connect to. Probe p16 shows the replacement works on all three tools: a packed
+               struct on a port passes Verilator, Icarus and Yosys; a named assignment pattern
+               does not pass Icarus or Yosys.
+Impact:        `docs/conventions.md` §2.1 and rule 2; probe p16; `.svlint.toml` forbids
+               interfaces, modports and interface ports in RTL.
+Decided by:    me
+Supersedes:    none (corrects conventions rule 2; no earlier decision record)
+
+### D-012 — UVM runs on Verilator, from this repository
+Date:          2026-11-15
+Phase:         1 (used at Gate 7 and for the v1.0 cut)
+Decision:      The UVM testbench of the v1.0 cut is built and run with the pinned Verilator and
+               the CHIPS Alliance `uvm-verilator` kit (tag `uvm-2020-3.2`, Apache-2.0), installed
+               by `scripts/install_toolchain.sh`. A UVM run's verdict includes the report
+               counts (`UVM_ERROR : 0`, `UVM_FATAL : 0`). EDA Playground becomes optional.
+Alternatives:  Keep UVM on EDA Playground only (D-003's impact line); drop UVM.
+Reason:        A result on EDA Playground cannot be rerun from this repository or by CI, so it
+               could not meet the evidence rule. Probe p15 shows UVM 2020 with its DPI layer
+               compiles and runs on Verilator 5.050 with 0 warnings and 0 errors, in about two
+               minutes of build time. The same probe pins one trap: a `uvm_error` leaves the
+               exit code at 0.
+Impact:        `scripts/install_toolchain.sh`; probe p15 (three checks); conventions rules 8 and
+               14; the "EDA Playground for the UVM port" dependency in D-003 no longer blocks
+               v1.0. Accellera's own `uvm-core` 2020.3.1 is not used: its DPI layer has no
+               Verilator backend.
+Decided by:    me
+Supersedes:    D-003, only its dependency on EDA Playground for the UVM port
+
+### D-013 — Pinned toolchain extended for the production-level checks
+Date:          2026-11-15
+Phase:         1 (each tool is first used at the gate named below)
+Decision:      The pinned toolchain of D-004 gains: mcy and eqy 0.69 (mutation coverage and
+               equivalence, Gates 7 and 8), svlint 0.9.5 with `.svlint.toml` and slang through
+               pyslang 12.1.0 (lint, Gate 5), PeakRDL 1.5.0 (register documentation and C
+               header, Gate 3), lcov 2.0 (coverage report, Gate 7), sigrok-cli 0.7.2 as an
+               independent UART line monitor (Gates 7 and 10), reuse 6.3.0 (license headers),
+               FuseSoC 2.4.7 (packaging, Gate 11) and WaveDrom 2.0.3 (diagrams). Python tools
+               are pinned in `requirements-tools.txt`; the install script skips what is already
+               at its pinned version and exits nonzero if a step fails.
+Alternatives:  Add each tool when its gate starts (D-006's default); use a prebuilt bundle
+               (versions differ from the pinned ones, and release downloads are blocked on the
+               cloud host).
+Reason:        The standard needs checks the six original tools cannot make: a second opinion on
+               the SystemVerilog, style rules, a readable coverage report, proof that the tests
+               find planted bugs, equivalence of two versions of a block, generated register
+               documents, and a line monitor that shares nothing with the RTL. All are free,
+               run on the cloud host and in a CI image, and each has a probe with a run that
+               must fail (p17 to p23), so `make probe` shows on any host that they really check.
+Impact:        `scripts/install_toolchain.sh`, `requirements-tools.txt`, `.svlint.toml`,
+               `scripts/slang_check.py`, `scripts/vcd_pin.py`, probes p17 to p23, conventions
+               §1.1, §2.1 and rules 14 to 18. Probe baseline re-accepted: 40 PASS / 17 FAIL /
+               0 UNAVAIL over 57 checks. Not covered by any free tool, and stated as limits:
+               CDC sign-off (a written review plus a structural script) and Vivado timing
+               (Tier 3 of D-002, reports committed).
+Decided by:    me
+Supersedes:    none (extends D-004)
+
+### D-014 — License and copyright information on every file
+Date:          2026-11-15
+Phase:         1
+Decision:      Every file carries SPDX license and copyright information: a header in each code
+               file, and a `REUSE.toml` entry for documents, probe baselines, placeholder files
+               and the original Mac probe suite. `make license` runs `reuse lint`; CI runs it
+               from Gate 9.
+Alternatives:  Headers from the first RTL file on only (D-009's impact line).
+Reason:        59 of the 67 tracked files had no license information, and a reviewer or a tool
+               reading one file cannot see the repository's `LICENSE`. The REUSE check makes the
+               rule mechanical.
+Impact:        `REUSE.toml`, `LICENSES/Apache-2.0.txt`, headers in 56 code files, Makefile target,
+               conventions §3 and §7.
+Decided by:    me
+Supersedes:    D-009, only its "from the first RTL file on" scope

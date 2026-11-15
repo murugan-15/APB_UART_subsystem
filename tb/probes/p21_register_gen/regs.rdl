@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
+// p21: three example registers in SystemRDL (D-007). This is a probe, not the
+// project's register map (that is decided at Gate 3).
+//   one RW register with a reset value, one enable register, one write-1-to-clear
+//   status register that hardware sets.
+addrmap p21_regs {
+  default regwidth = 32;
+  reg { field { sw = rw; hw = r; } div[15:0] = 16'd54; } BAUDDIV    @ 0x10;
+  reg { field { sw = rw; hw = r; } en[5:0] = 0; }        INT_EN     @ 0x14;
+  reg { field { sw = rw; hw = w; woclr; hwset; } sts[5:0] = 0; } INT_STATUS @ 0x18;
+};

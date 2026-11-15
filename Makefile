@@ -1,14 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 murugan-15
 SHELL := /bin/bash
 EDA   ?= /opt/eda
 export PATH := $(EDA)/bin:$(PATH)
 
-.PHONY: help toolchain probe probe-accept probe-mac clean
+.PHONY: help toolchain probe probe-accept probe-mac license clean
 
 help:
 	@echo "make toolchain     build pinned EDA tools into $(EDA) (sudo, ~40 min)"
 	@echo "make probe         run M0 capability probes, diff against baseline"
 	@echo "make probe-accept  overwrite the baseline with the latest results"
 	@echo "make probe-mac     run the original Mac M0 suite (tb/probes/mac_suite)"
+	@echo "make license       check SPDX license headers on every file (reuse lint)"
 	@echo "make clean         remove build/"
 
 toolchain:
@@ -25,6 +28,10 @@ probe-accept:
 # Original Mac M0 suite, kept separately until M0b ports it (tb/probes/mac_suite/README.md).
 probe-mac:
 	bash tb/probes/mac_suite/probe.sh
+
+# Every tracked file must carry SPDX license and copyright information (D-009).
+license:
+	reuse lint
 
 clean:
 	rm -rf build

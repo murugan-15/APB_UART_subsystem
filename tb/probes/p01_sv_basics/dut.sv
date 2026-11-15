@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p01: core synthesizable SystemVerilog -- logic, typedef enum / packed
 // struct, always_ff / always_comb, unique case, async active-low reset.
 module p01_dut (

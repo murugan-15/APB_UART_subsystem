@@ -9,7 +9,7 @@ reason in `docs/decisions.md`. Items marked **PROPOSED** are awaiting approval.
 
 ## 1. Toolchain
 
-### 1.1 Cloud host (verified 2026-10-10)
+### 1.1 Cloud host (verified 2026-10-10; extended 2026-11-15, D-013)
 
 Built from source at pinned tags by `scripts/install_toolchain.sh` (`make toolchain`, D-004)
 into `/opt/eda` (the Makefile puts `/opt/eda/bin` on `PATH`).
@@ -22,11 +22,26 @@ into `/opt/eda` (the Makefile puts `/opt/eda/bin` on `PATH`).
 | SymbiYosys (sby) | 0.69 | Formal driver (BMC, prove) |
 | Yices | 2.7.0 | SMT solver for sby `smtbmc` (BMC, k-induction, traces) |
 | Z3 | 5.1.0 | SMT solver Verilator needs at runtime for `randomize()` |
-| UVM | — | Not installed. UVM runs on EDA Playground (D-003) |
+| uvm-verilator | uvm-2020-3.2 | UVM 2020 library with a Verilator DPI backend, source only (D-012) |
+| mcy | 0.69 | Mutation coverage: does the testbench catch planted bugs? (command-line tool only) |
+| eqy | 0.69 | Equivalence checking of two versions of a block |
+| svlint | 0.9.5 | Rule-based style lint with the project rule file `.svlint.toml` |
+| slang (pyslang) | 12.1.0 | Second SystemVerilog front end, through `scripts/slang_check.py` |
+| PeakRDL | 1.5.0 (regblock 1.3.1, cheader 1.1.0, html 2.12.2, markdown 1.0.3; systemrdl-compiler 1.33.0) | Register docs, C header and a reference register block from SystemRDL (D-007) |
+| lcov | 2.0 (Ubuntu 24.04 package) | HTML coverage report from Verilator's coverage data |
+| sigrok-cli | 0.7.2 (Ubuntu 24.04 package) | UART decoder used as an independent line monitor, in simulation and at bring-up |
+| reuse | 6.3.0 | SPDX / license header check (`make license`) |
+| FuseSoC, Edalize | 2.4.7, 0.6.8 | IP packaging (Gate 11). Installed; add a probe before the first `.core` file |
+| WaveDrom | 2.0.3 | Timing diagrams from text. Installed; add a probe before the first diagram |
 
-Probe baseline: **26 PASS / 13 FAIL / 1 UNAVAIL** (40 checks, 15 probes).
-Every FAIL below is a confirmed tool limitation (log read, cause known), not
-a probe bug.
+The Python tools are pinned in `requirements-tools.txt`; lcov, sigrok-cli and gawk come from apt.
+`scripts/install_toolchain.sh` skips a tool that is already at its pinned version and exits
+nonzero if any step fails.
+
+Probe baseline: **40 PASS / 17 FAIL / 0 UNAVAIL** (57 checks, 23 probes; re-accepted 2026-11-15
+when D-011 to D-013 added p16 to p23 and turned p15 from UNAVAIL into three checks. Until then:
+26 / 13 / 1 over 40 checks). Every FAIL below is a confirmed tool limitation (log read, cause
+known), not a probe bug.
 
 ### 1.2 Mac host (original line, verified 2026-10-10)
 
@@ -77,7 +92,23 @@ installed there, and must fail with a clear message if the environment is missin
 | `bind` | ✅ | ❌ syntax error | ❌ **silently dropped** | p12 |
 | `ASSUME` macro (assume in formal / assert in sim) | ✅ fires on illegal stimulus | — | ✅ load-bearing | p13 |
 | BMC depth vs unbounded (abc pdr) | — | — | ✅ behaves as theory says | p14 |
-| UVM | UNAVAIL | — | — | p15 |
+| UVM 2020 test with the DPI layer (uvm-verilator) | ✅ 0 warnings, 0 errors | — | — | p15 |
+| A `uvm_error` → nonzero exit | ❌ exits 0; the report counts show it | — | — | p15 |
+| Packed struct (package typedef) on a module port | ✅ | ✅ | ✅ synth | p16 |
+| Named assignment pattern `'{member: value}` | ✅ | ❌ syntax error | ❌ syntax error | p16 |
+| A variable written by `always_ff` and by a second process (illegal, IEEE 1800 9.2.2.4) | lint warning MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it) |
+
+Other tools (D-013):
+
+| Capability | Tool | Result | Probe |
+|---|---|---|---|
+| Coverage data → lcov → HTML; a never-taken branch shows count 0 | Verilator `--coverage`, `verilator_coverage --write-info`, `genhtml` | ✅ | p17 |
+| Equivalent refactor proved; a dropped input bit reported | eqy (sby, Yices) | ✅ | p18 |
+| Mutation coverage: a checking testbench covers 38 of 40 mutations, a blind one 0 of 40 | mcy (Yosys `mutate`, Icarus) | ✅ | p19 |
+| Bytes on a simulated `tx` pin decoded by third-party code; a wrong baud rate does not decode | sigrok-cli UART decoder on a VCD through `scripts/vcd_pin.py` | ✅ | p20 |
+| C header, Markdown and a reference register block from SystemRDL; overlapping offsets rejected | PeakRDL | ✅ (the generated block needs `-Wno-MULTIDRIVEN` under Verilator) | p21 |
+| Legal file compiles; a double-driven variable is an error | slang | ✅ | p22 |
+| Project rule file passes a conforming file and reports three planted violations | svlint | ✅ | p23 |
 
 ### 2.2 Rules
 
@@ -86,8 +117,13 @@ installed there, and must fail with a clear message if the environment is missin
 1. **No `import`, no `return`.** Use package-qualified names
    (`uart_pkg::baud_t`, `uart_pkg::parity(d)`) and Verilog-2001 function-name
    assignment (`parity = ^d;`). (p03)
-2. **Interfaces only inside the RTL hierarchy,** never on a port that Icarus
-   TBs must drive. The APB slave's top-level ports are plain signals. (p02)
+2. **No SystemVerilog interfaces in synthesizable RTL** (D-011). Every port in
+   `rtl/` is a plain signal or a packed struct from the package, written with
+   a package-qualified name (rule 1). Assign struct members one by one, never
+   with a named assignment pattern. Interfaces and virtual interfaces belong
+   in `tb/`, where class-based benches are Verilator-only (rule 6). Icarus
+   rejects an interface port anywhere in the hierarchy, not only at the top.
+   (p02, p16; `.svlint.toml` enforces it)
 3. **Parameter checks:** `if (bad) begin : g_chk $error("single literal"); end`.
    No format arguments. (p08)
 4. **No blanket `-Wno-fatal`.** Silence specific lint codes locally. If a flow
@@ -105,7 +141,9 @@ installed there, and must fail with a clear message if the environment is missin
    initializers on variables declared in procedural blocks (`IMPLICITSTATIC`).
 8. **Self-checking verdict = exit code AND `PASS` marker AND no `FAIL`
    marker.** For Icarus, also grep the log for `ERROR`, because a failing
-   assertion does not change its exit code. (p07)
+   assertion does not change its exit code. (p07) For UVM, also require
+   `UVM_ERROR : 0` and `UVM_FATAL : 0` in the report, because a `uvm_error`
+   does not change the exit code either. (p15)
 
 **Assertions / formal:**
 
@@ -122,6 +160,31 @@ installed there, and must fail with a clear message if the environment is missin
     not vacuous. (p07, p09, p10, p12)
 13. **Report BMC results as "no failure up to depth N".** Only a passing
     `mode prove` counts as "proved". (p14)
+
+**Tools added by D-012 and D-013:**
+
+14. **UVM runs on Verilator** with the uvm-verilator kit and its DPI file
+    (`--vpi`, `$UVM_HOME/src/dpi/uvm_dpi.cc`). Lint is switched off for the
+    library path only, through a `.vlt` configuration file; never with a
+    blanket `-Wno-lint` or `-Wno-fatal`. (p15)
+15. **Coverage is published as an lcov HTML report** built from Verilator's
+    `coverage.dat`. (p17)
+16. **A second front end and a style linter read the RTL:** slang through
+    `scripts/slang_check.py` (it must run slang's analysis pass, or a
+    double-driven variable goes unreported) and svlint with `.svlint.toml`
+    (with no rule file svlint checks nothing). (p22, p23)
+17. **The PeakRDL reference register block** is generated with
+    `--cpuif apb3-flat --default-reset arst_n --err-if-bad-addr` and is
+    simulation-only: Icarus cannot compile it, and under Verilator it needs
+    `-Wno-MULTIDRIVEN` for that block alone. (p21, D-007)
+18. **Every new check is shown failing once** before it is relied on: each
+    probe above keeps a file or a run that must fail. A tool that reports
+    nothing may simply not be looking.
+19. **PROPOSED:** `-Wall` on Verilator 5.050 enables PROCASSINIT (a
+    declaration initializer on a variable that a process also assigns).
+    Keep it on for `rtl/`, where reset, not an initializer, sets state
+    (D-001). Waive it for testbench files, and locally for the
+    `f_past_valid` declaration of rule 9, where the initializer is the idiom.
 
 ### 2.3 Findings from the original line not yet probed here
 
@@ -140,7 +203,8 @@ Before a milestone relies on one of these, port the probe into `tb/probes/` and 
 ### 2.4 Toolchain gotchas (original line)
 
 - Verilator treats any `//` comment whose first word is `verilator` as a pragma
-  (`%Error-BADVLTPRAGMA`). Don't start a comment with the tool name.
+  (`%Error-BADVLTPRAGMA`). Don't start a comment with the tool name. This holds in `.vlt`
+  configuration files too, and in any letter case (seen again on the cloud host, 2026-11-15).
 - `sby` (this install): a line prefixed with several task names (`a b: …`) was not applied
   (the job reported "Missing mode"); one task name per prefix works.
 - Without an SMT solver, `abc pdr` can still *prove* properties, but every failing property
@@ -154,6 +218,9 @@ Before a milestone relies on one of these, port the probe into `tb/probes/` and 
 - One module per file; file name = module name; `.sv` extension.
 - `` `default_nettype none `` at the top of every RTL file, `` `default_nettype wire `` at the end.
 - Short header comment: purpose, clock/reset domain, key parameters.
+- Every file starts with `SPDX-License-Identifier: Apache-2.0` and an `SPDX-FileCopyrightText`
+  line (D-009, extended to every file on 2026-11-15). A file that cannot carry a comment is
+  listed in `REUSE.toml`. `make license` runs `reuse lint`.
 - Synthesizable RTL lives only in `rtl/`. No `#` delays, no `initial` blocks (exception:
   FPGA memory initialization, documented), no `$display` in synthesizable paths.
 
@@ -260,6 +327,7 @@ save the decoded log under `build/reports/bringup/`. That is hard evidence for t
 | `make prog` | Tier 2: program Basys 3 via openFPGALoader | exits nonzero if the board is not found | planned |
 | `make bringup` | Capture + decode UART with `sigrok-cli` | `build/reports/bringup/` | planned |
 | `make vivado` | Tier 3: `vivado -mode batch -source scripts/vivado_build.tcl` (x86 machine only) | `build/reports/vivado/` | planned |
+| `make license` | `reuse lint`: every file has SPDX license and copyright information | exits nonzero on a missing header | yes |
 | `make clean` | Removes `build/` only | — | yes |
 
 Every random seed used is printed and logged; `make sim TEST=x SEED=n` must reproduce a
@@ -272,3 +340,6 @@ failure exactly.
 GitHub Actions on every push: `make lint` + `make regression` (Verilator on Ubuntu) and
 `make formal` where installable. Pin tool versions in the workflow and note any difference
 from the local versions in §1.
+
+From Gate 9 (D-010) the workflow runs on the pinned image and also runs `make probe` and
+`make license`; a tool version that differs from §1.1 fails the job.

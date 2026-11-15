@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 murugan-15
+#
+# Python tools of the pinned toolchain (D-013). Installed by scripts/install_toolchain.sh.
+# One exact version per tool: a result is evidence only on these versions.
+systemrdl-compiler==1.33.0   # SystemRDL front end (D-007)
+peakrdl==1.5.0               # register generation: C header, docs, reference register block
+peakrdl-regblock==1.3.1
+peakrdl-cheader==1.1.0
+peakrdl-html==2.12.2
+peakrdl-markdown==1.0.3
+pyslang==12.1.0              # slang: second SystemVerilog front end (scripts/slang_check.py)
+fusesoc==2.4.7               # IP packaging
+edalize==0.6.8
+wavedrom==2.0.3.post3        # timing diagrams from text
+reuse==6.3.0                 # SPDX / license header check (make license)
+ruff==0.17.5                 # Python lint for scripts/
+codespell==2.4.3
+pre-commit==4.7.0

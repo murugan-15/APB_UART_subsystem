@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
+// p21 anti-vacuity: two registers at the same offset. The compiler must reject it.
+addrmap p21_overlap {
+  default regwidth = 32;
+  reg { field { sw = rw; hw = r; } a[7:0] = 0; } REG_A @ 0x10;
+  reg { field { sw = rw; hw = r; } b[7:0] = 0; } REG_B @ 0x10;
+};

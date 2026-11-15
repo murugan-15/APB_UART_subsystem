@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p11: formal-style immediate assertions with $past and the f_past_valid
 // guard (the convention used in all of this project's formal properties).
 //   good    : correct register, guarded assertion      -> must PASS

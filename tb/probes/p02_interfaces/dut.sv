@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p02: parameterized interface with modports, connected through two
 // submodules. The APB slave port may be written this way, so every tool
 // in the flow must accept it.

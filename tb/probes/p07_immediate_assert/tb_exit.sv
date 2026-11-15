@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p07b: does a failing assertion with the DEFAULT action ($error) make the
 // simulator exit nonzero? If not, the regression must grep logs for errors
 // rather than trust the exit code.

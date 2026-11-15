@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 murugan-15
+#
+# svlint rules for synthesizable RTL (rtl/), one line per rule of docs/conventions.md.
+# Every rule not listed here is off. Probe p23 keeps a file that must pass and one that must fail.
+[option]
+re_required_parameter = "^[A-Z][A-Z0-9_]*$"       # section 3, Naming: parameters UPPER_CASE
+re_required_localparam = "^[A-Z][A-Z0-9_]*$"
+re_forbidden_port_interface = ".*"                # section 2.2 rule 2 (D-011): no interface ports in RTL
+re_forbidden_interface = ".*"
+re_forbidden_modport = ".*"
+
+[textrules]
+
+[syntaxrules]
+default_nettype_none = true                       # section 3, Files
+module_nonansi_forbidden = true                   # section 3, Naming: ANSI port lists
+keyword_forbidden_always = true                   # section 3, Logic: always_ff / always_comb only
+keyword_forbidden_always_latch = true             # no latches
+blocking_assignment_in_always_ff = true           # section 3, Logic: nonblocking only in always_ff
+non_blocking_assignment_in_always_comb = true     # section 3, Logic: blocking only in always_comb
+case_default = true                               # section 3, FSMs: every case has a default
+explicit_case_default = true
+enum_with_type = true                             # section 3, FSMs: typedef enum logic [N-1:0]
+re_required_parameter = true
+re_required_localparam = true
+re_forbidden_port_interface = true
+re_forbidden_interface = true
+re_forbidden_modport = true

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p10: concurrent SVA under Yosys/sby (dual property, same pair as p09).
 // good must PASS and bad must FAIL. If Yosys rejects the syntax both tasks
 // error out; if it silently drops the assertion both PASS. Either way the

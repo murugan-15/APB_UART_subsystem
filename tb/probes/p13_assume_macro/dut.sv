@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 murugan-15
+//
 // p13: the ASSUME macro convention.
 // An input requirement the DUT relies on is written once as `ASSUME:
 //   formal -> assume : the solver only explores legal inputs

@@ -9,7 +9,7 @@ Current mode:       LEARN
 Autonomy level:     3
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-11-02
+Last updated:       2026-11-15
 ```
 
 ## Gate checklist
@@ -39,12 +39,13 @@ Status: pass / fail / not run / not applicable, with evidence.
 | Gate | Check | Candidate tools / structure | Status |
 |---|---|---|---|
 | 0 | Pinned toolchain, probe baseline, PLANS §2 skeleton | Verilator, Icarus, Yosys, sby, Yices, Z3; `make probe` | pass (2026-10-10) |
+| 1 | Tools for the later gates chosen and probed before anything relies on them (D-011 to D-014) | uvm-verilator, mcy, eqy, svlint, slang, PeakRDL, lcov, sigrok-cli, reuse; probes p15 to p23; `make license` | pass (2026-11-15): `make probe` 40 / 17 / 0 matches the new baseline; `reuse lint` 84 of 84 files |
 | 2 | Requirements traceable by ID | `docs/spec.md` with REQ-* IDs | not run |
-| 3 | One register description generating docs and C header (D-007); board test sequencer designed (D-008) | SystemRDL + PeakRDL (`rdl/`); `rtl/board/` | not run |
+| 3 | One register description generating docs and C header (D-007); board test sequencer designed (D-008) | SystemRDL + PeakRDL (`rdl/`, probed in p21); `rtl/board/` | not run |
 | 4 | Verification plan names a tool per check | `docs/verification_plan.md` | not run |
-| 5 | RTL lint and format clean | `verilator --lint-only -Wall`; Verible (to probe) | not run |
-| 7 | Reproducible regression with seeds and coverage | `scripts/regression.py`; Verilator `--coverage`; covergroups (needs M0b) | not run |
-| 8 | Formal jobs per block | SymbiYosys (`formal/`) | not run |
+| 5 | RTL lint clean on three readers | `verilator --lint-only -Wall`; slang (`scripts/slang_check.py`, p22); svlint with `.svlint.toml` (p23). Verible is not used: its binaries are release downloads, which the cloud host blocks | not run |
+| 7 | Reproducible regression with seeds and coverage | `scripts/regression.py`; Verilator `--coverage` with an lcov HTML report (p17); mutation coverage with mcy (p19); sigrok line monitor (p20); UVM on Verilator (p15, D-012); covergroups (needs M0b) | not run |
+| 8 | Formal jobs per block | SymbiYosys (`formal/`); eqy for equivalence (p18) | not run |
 | 9 | CI anyone can run (D-010): pinned tool image, all checks on push, Codespaces | GitHub Actions (`.github/workflows/`), GHCR image from `scripts/install_toolchain.sh`, `.devcontainer/` | not run |
 | 10 | Resource, timing, bring-up evidence; written CDC review | Yosys `synth_xilinx`, openXC7, Vivado (D-002); `sigrok-cli` | not run |
 | 11 | Release-ready IP package | FuseSoC `.core`, `README.md`, `CHANGELOG.md`, `LICENSE` (added, D-009), datasheet, `sw/` header and driver, version tags | not run |
@@ -53,7 +54,9 @@ Status: pass / fail / not run / not applicable, with evidence.
 
 | Check | Status | Command | Evidence |
 |---|---|---|---|
-| Probes | pass — matches baseline (26 PASS / 13 FAIL known tool limits / 1 UNAVAIL UVM), 2026-10-10, cloud host | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt`; summary in `conventions.md` §2 |
+| Probes | pass — matches baseline (40 PASS / 17 FAIL known tool limits / 0 UNAVAIL over 57 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
+| Probes, original Mac suite | pass — matches its baseline (26 PASS / 8 FAIL / 1 UNAVAILABLE), 2026-11-15, cloud host | `make probe-mac` | `build/reports/probes_mac.txt`; `tb/probes/mac_suite/README.md` |
+| License headers | pass — 84 of 84 files, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
 | Lint | not run | `make lint` (not implemented) | |
 | Regression | not run | `make regression` (not implemented) | |
 | Formal | not run | `make formal` (not implemented) | |
@@ -114,9 +117,21 @@ bugs** (lint, uninitialized state at step 0). Read the log before recording a FA
 - Icarus cannot run class / SVA / bind / constrained-random TBs, and a failing assertion does not
   change its exit code → Icarus is for plain directed portability benches only.
 
+Findings of 2026-11-15 (probes p15 to p23):
+
+- Icarus rejects an interface port anywhere in the hierarchy, and Icarus and Yosys reject named
+  assignment patterns → no interfaces in RTL, struct members assigned one by one (D-011).
+- A `uvm_error` leaves the exit code at 0 → a UVM verdict reads the report counts (D-012).
+- svlint with no rule file checks nothing, and slang without its analysis pass misses a
+  double-driven variable → every tool check keeps a run that must fail (conventions rule 18).
+- Icarus accepts a variable written by `always_ff` and by a second process; Verilator warns
+  (MULTIDRIVEN) and slang rejects it.
+- Verilator 5.050 `-Wall` adds PROCASSINIT, which older versions do not have → results count
+  only on the pinned version.
+
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-010).
+See `docs/decisions.md` (D-001 to D-014).
 
 ## Open decisions (mine to make)
 
@@ -126,8 +141,10 @@ See `docs/decisions.md` (D-001 to D-010).
 - [x] Project line — `main` (2026-10-13)
 - [ ] Port the four original-only probes (classes + mailbox, covergroup, `--coverage`, FST
       dump) into `tb/probes/` and re-baseline (proposed milestone M0b; needed before v0.5 work).
-      The original suite is in `tb/probes/mac_suite/` (`make probe-mac`); on the cloud host its
-      FST checks need `liblz4-dev` and `xxd`.
+      The original suite is in `tb/probes/mac_suite/` (`make probe-mac`); since 2026-11-15 the
+      toolchain script installs `liblz4-dev` and `xxd`, and it matches its baseline on the cloud
+      host. `--coverage` is now also covered by p17 in the main suite; mailbox, covergroup and
+      FST are not.
 - [x] Delete the original-line branch — done 2026-10-14 (public repo now has `main` only)
 - [ ] Async FIFO / separate UART clock (the only CDC content) — decide in Phase 3
 - [x] Register description — D-007 (SystemRDL for docs and header, hand-written RTL), 2026-10-23
@@ -136,6 +153,16 @@ See `docs/decisions.md` (D-001 to D-010).
 - [x] License — D-009 (Apache-2.0), 2026-10-23
 - [x] CI — D-010 (own pinned toolchain image on GHCR, CI on every push, Codespaces), 2026-10-23
 - [x] ASIC flow (OpenLane / SKY130) — not pursued (2026-10-23)
+- [x] Interfaces in RTL — D-011 (none; packed structs on ports), 2026-11-15
+- [x] UVM host — D-012 (Verilator with uvm-verilator; EDA Playground optional), 2026-11-15
+- [x] Tools for the production-level checks — D-013, 2026-11-15
+- [x] License headers on every file — D-014, 2026-11-15
+- [ ] Conventions rule 19 (PROPOSED): PROCASSINIT kept on for `rtl/`, waived for testbenches and
+      the `f_past_valid` declaration
+- [ ] Copyright holder name in the SPDX headers: `murugan-15` (the repository owner's handle) is
+      a placeholder; confirm or replace before the branch is merged
+- [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
+      scope with the Phase 3 clocking decision)
 
 ## Next step
 
