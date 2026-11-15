@@ -16,7 +16,7 @@ commands below reproduce.
 | Piece | Where | What it gives |
 |---|---|---|
 | Pinned open-source toolchain | [`scripts/install_toolchain.sh`](scripts/install_toolchain.sh), [`requirements-tools.txt`](requirements-tools.txt) | The same tool versions on every machine: Verilator, Icarus Verilog, Yosys, SymbiYosys, Yices, Z3, and the tools for coverage reports, mutation coverage, equivalence, UVM, register generation and lint (versions in [`docs/conventions.md`](docs/conventions.md) §1.1) |
-| Capability probes | [`tb/probes/`](tb/probes/README.md) | 24 small tests of what each tool can and cannot do. Most keep a run that must fail, so a tool that silently ignores a feature shows up |
+| Capability probes | [`tb/probes/`](tb/probes/README.md) | 27 small tests of what each tool can and cannot do. Most keep a run that must fail, so a tool that silently ignores a feature shows up |
 | Conventions | [`docs/conventions.md`](docs/conventions.md) | Coding, testbench, assertion and formal rules, each backed by a probe |
 | Decision log | [`docs/decisions.md`](docs/decisions.md) | One record per decision, with the alternatives that were rejected and why |
 | Bug log | [`docs/bug_log.md`](docs/bug_log.md) | Real bugs only, each with its evidence and the check that now prevents it |
@@ -34,7 +34,7 @@ make check-docs       # the documents agree with each other and with the reposit
 ```
 
 `make probe` must end with `Probe results match baseline.` The baseline is
-**43 PASS / 17 FAIL / 0 UNAVAIL** over 60 checks. Each FAIL is a known limitation of a tool, pinned
+**47 PASS / 20 FAIL / 0 UNAVAIL** over 67 checks. Each FAIL is a known limitation of a tool, pinned
 on purpose so that a tool update that changes it is noticed; the conventions say how the design
 works around each one.
 

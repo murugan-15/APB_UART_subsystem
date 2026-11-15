@@ -340,6 +340,20 @@ vl_procassinit() {
   vl_lint_rejects PROCASSINIT -Wall procassinit.sv
 }
 
+# ------------------------------------------------------------ p27 FST dump --
+# The dump must exist and be FST (first byte 0x00), not VCD text.
+is_fst() { [ -s "$1" ] && [ "$(head -c 1 "$1" | xxd -p)" = "00" ]; }
+vl_fst() {
+  verilator --binary --timing --trace-fst -j 0 -Mdir obj --top-module p27_tb tb.sv || return 1
+  timeout "$SIM_TIMEOUT" ./obj/Vp27_tb +dump=p27.fst >sim.log 2>&1
+  sim_verdict $? && is_fst p27.fst
+}
+iv_fst() {
+  iv_build p27_tb tb.sv || return 1
+  timeout "$SIM_TIMEOUT" vvp -n sim.vvp -fst +dump=p27.fst >sim.log 2>&1
+  sim_verdict $? && is_fst p27.fst
+}
+
 # ----------------------------------------------------------------- probes ---
 check p01_sv_basics          verilator      verilator vl_sim p01_tb dut.sv tb.sv
 check p01_sv_basics          iverilog       iverilog  iv_sim p01_tb dut.sv tb.sv
@@ -424,6 +438,16 @@ check p23_style_lint         svlint         svlint    svlint_dual
 check p24_tb_lint            verilator-implicitstatic verilator vl_lint_rejects IMPLICITSTATIC static_init.sv
 check p24_tb_lint            verilator-width verilator vl_lint_rejects WIDTHEXPAND width.sv
 check p24_tb_lint            verilator-procassinit verilator vl_procassinit
+
+check p25_mailbox            verilator      verilator vl_sim p25_tb tb.sv
+check p25_mailbox            iverilog       iverilog  iv_sim p25_tb tb.sv
+
+check p26_covergroup         verilator      verilator vl_sim p26_tb tb.sv
+check p26_covergroup         verilator-type-coverage verilator vl_sim p26_tb -DTYPE_COV tb.sv
+check p26_covergroup         iverilog       iverilog  iv_sim p26_tb tb.sv
+
+check p27_fst_dump           verilator      verilator vl_fst
+check p27_fst_dump           iverilog       iverilog  iv_fst
 
 # ---------------------------------------------------------------- summary ---
 echo

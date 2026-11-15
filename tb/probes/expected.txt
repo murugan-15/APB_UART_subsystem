@@ -58,3 +58,10 @@ p23_style_lint             svlint                 PASS
 p24_tb_lint                verilator-implicitstatic PASS
 p24_tb_lint                verilator-width        PASS
 p24_tb_lint                verilator-procassinit  PASS
+p25_mailbox                verilator              PASS
+p25_mailbox                iverilog               FAIL
+p26_covergroup             verilator              PASS
+p26_covergroup             verilator-type-coverage FAIL
+p26_covergroup             iverilog               FAIL
+p27_fst_dump               verilator              PASS
+p27_fst_dump               iverilog               PASS
