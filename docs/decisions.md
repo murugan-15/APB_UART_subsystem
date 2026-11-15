@@ -254,3 +254,44 @@ Impact:        `REUSE.toml`, `LICENSES/Apache-2.0.txt`, headers in 56 code files
                conventions §3 and §7.
 Decided by:    me
 Supersedes:    D-009, only its "from the first RTL file on" scope
+
+### D-015 — Quality rules for every artifact; light CI now
+Date:          2026-11-15
+Phase:         1 (applies to every later gate)
+Decision:      Seven rules hold for every artifact from now on: every number is computed by a
+               script and names its basis; a check counts only after it has been seen to fail on
+               a planted error; every new or changed artifact is read by a second, independent
+               reviewer before approval; every bug leaves a check and a planted error that proves
+               the check; a decision triggers a sweep of everything that assumed otherwise;
+               nothing a check depends on lives outside the repository; a result is evidence only
+               on the pinned tool versions. Each gate exit also needs an acceptance sample of
+               its documents read by the second reader with no error found (150 items; 300 for
+               release documents). A light CI workflow runs the document, license and script
+               checks on every push now, ahead of the Gate 9 image.
+Alternatives:  Keep adding one check per error after it is found; rely on the author rereading;
+               wait for Gate 9 before anything runs automatically; a sample of 60 items.
+Reason:        Checks written after each error catch that error again, not the next one of its
+               kind, and several author-only reviews each found new errors. Until something runs
+               on every push, a check protects the project only when someone remembers to run
+               it. With no error found, a sample of 150 bounds the remaining error rate below
+               2.0 % and one of 300 below 1.0 %, at 95 % confidence; 60 would bound it only
+               below 4.9 %.
+Impact:        `docs/conventions.md` rules 18 and 20 to 23 and §8; `.github/workflows/checks.yml`;
+               `scripts/check_docs.py`. The controls for later gates (requirement checks,
+               generated traceability, named mutants, report stamps, the claims check) are built
+               at their gates.
+Decided by:    me
+Supersedes:    none (D-010 still decides the Gate 9 image)
+
+### D-016 — PROCASSINIT on for RTL, waived for testbenches
+Date:          2026-11-15
+Phase:         1 (applies from Gate 5)
+Decision:      Conventions rule 19 is adopted: Verilator's PROCASSINIT warning stays on for
+               `rtl/`; testbench files waive it, and so does the `f_past_valid` declaration.
+Alternatives:  Waive it everywhere; fix every testbench declaration instead of waiving.
+Reason:        In RTL a declaration initializer hides state that reset should set (D-001). In a
+               testbench, and for `f_past_valid` in formal, the initializer is the normal idiom
+               and simulates correctly. Probe p24 shows the warning exists only under `-Wall`.
+Impact:        `docs/conventions.md` rule 19; `make lint` (Gate 5).
+Decided by:    me
+Supersedes:    none

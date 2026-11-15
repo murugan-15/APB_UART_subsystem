@@ -38,7 +38,8 @@ The Python tools are pinned in `requirements-tools.txt`; lcov, sigrok-cli and ga
 `scripts/install_toolchain.sh` skips a tool that is already at its pinned version and exits
 nonzero if any step fails.
 
-Probe baseline: **43 PASS / 17 FAIL / 0 UNAVAIL** (60 checks, 24 probes; re-accepted 2026-11-15
+Probe baseline: **47 PASS / 20 FAIL / 0 UNAVAIL** (67 checks, 27 probes, after milestone M0b added
+p25 to p27 on 2026-11-15; before M0b 43 / 17 / 0 over 60 checks; re-accepted 2026-11-15
 when D-011 to D-013 added p16 to p23 and turned p15 from UNAVAIL into three checks, 40 / 17 / 0
 over 57 checks, and again the same day when p24 gave rules 7 and 19 a probe. Until then:
 26 / 13 / 1 over 40 checks). Every FAIL below is a confirmed tool limitation (log read, cause
@@ -101,6 +102,10 @@ installed there, and must fail with a clear message if the environment is missin
 | Initializer on a variable declared in a procedural block (static: set once) | ✅ rejected, IMPLICITSTATIC | — | — | p24 |
 | Implicit width extension | ✅ rejected, WIDTHEXPAND | — | — | p24 |
 | Declaration initializer on a variable a process also assigns | accepted by default; rejected under `-Wall` (PROCASSINIT) | — | — | p24 |
+| Classes with a `mailbox` between two processes | ✅ | ❌ syntax error | — | p25 |
+| `covergroup` / `coverpoint` / `cross`, queried with `get_inst_coverage()` | ✅ partial 37.5, then 100 | ❌ syntax error | — | p26 |
+| Type-level `get_coverage()` | ❌ returns 0 with every bin hit | — | — | p26 |
+| FST waveform dump | ✅ `--trace-fst` (needs `liblz4-dev`) | ✅ `vvp -fst` | — | p27 |
 
 Other tools (D-013):
 
@@ -186,18 +191,36 @@ Other tools (D-013):
 18. **Every new check is shown failing once** before it is relied on: each
     probe above keeps a file or a run that must fail. A tool that reports
     nothing may simply not be looking. (p15 to p24)
-19. **PROPOSED:** `-Wall` on Verilator 5.050 enables PROCASSINIT (a
-    declaration initializer on a variable that a process also assigns).
-    Keep it on for `rtl/`, where reset, not an initializer, sets state
-    (D-001). Waive it for testbench files, and locally for the
-    `f_past_valid` declaration of rule 9, where the initializer is the idiom. (p24)
+19. **PROCASSINIT stays on for `rtl/`** (D-016). `-Wall` on Verilator 5.050
+    enables it (a declaration initializer on a variable that a process also
+    assigns); in RTL, reset sets state, not an initializer (D-001). It is
+    waived for testbench files, and locally for the `f_past_valid`
+    declaration of rule 9, where the initializer is the idiom. (p24)
 
-### 2.3 Findings from the original line not yet probed here
+**Quality rules (D-015):**
 
-Measured on the Mac host with the original probe suite, now kept in `tb/probes/mac_suite/`
-(`make probe-mac`; cloud-host status in its README).
-Before a milestone relies on one of these, port the probe into `tb/probes/` and re-baseline
-(proposed milestone M0b).
+20. **A lint waiver sits next to the line it covers, with its reason.** No
+    file-wide or command-line waiver for RTL. The number of waivers is
+    printed in the lint report and may only go down, unless an increase is
+    approved and recorded. (BUG-002: a blanket waiver hid a real error)
+21. **The regression reports two mutation scores:** the named mutants in
+    `tb/mutants/` (known bugs, planted under a define; the regression must
+    fail on each) and mcy's random mutations. (p19)
+22. **Every report is stamped** with the command, the tool versions and the
+    commit, and counts as evidence only on the pinned versions of §1.1.
+    (p24 shows a result that depends on the version)
+23. **Nothing is claimed without a report:** a sentence in the README, the
+    datasheet or the changelog that holds a number or says verified, proved,
+    covered, passes or meets timing links to a file in `build/reports/` or
+    to a row of the traceability matrix. `make check-docs` already checks the
+    README's probe numbers. (p08, BUG-002: a check can pass for the wrong reason)
+
+### 2.3 Findings from the original line (ported on 2026-11-15, milestone M0b)
+
+Measured on the Mac host with the original probe suite, kept in `tb/probes/mac_suite/`
+(`make probe-mac`; cloud-host status in its README). All four are now also in the main suite:
+mailboxes in p25, covergroups in p26, `--coverage` in p17 and the FST dump in p27, with the same
+results. The table below keeps the Mac suite's own probe numbers.
 
 | Construct | Needed for | Verilator 5.050 | Icarus 13.0 | Yosys/sby | Fallback if unsupported |
 |---|---|---|---|---|---|
@@ -348,5 +371,10 @@ GitHub Actions on every push: `make lint` + `make regression` (Verilator on Ubun
 `make formal` where installable. Pin tool versions in the workflow and note any difference
 from the local versions in §1.
 
-From Gate 9 (D-010) the workflow runs on the pinned image and also runs `make probe` and
-`make license` and `make check-docs`; a tool version that differs from §1.1 fails the job.
+Since 2026-11-15 a light workflow (`.github/workflows/checks.yml`, D-015) runs on every push and
+pull request: `make check-docs`, `make license`, `shellcheck` and `ruff` on the scripts. It needs
+no EDA tool.
+
+From Gate 9 (D-010) a second workflow runs on the pinned image and also runs `make probe`, lint,
+the regression and formal; a tool version that differs from §1.1 fails the job, and a planted
+failing test must turn it red before it is trusted.
