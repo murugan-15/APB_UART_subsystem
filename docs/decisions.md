@@ -251,8 +251,9 @@ Decision:      Every file carries SPDX license and copyright information: a head
                and the original Mac probe suite. `make license` runs `reuse lint`; the light CI workflow
                runs it on every push (D-015).
 Alternatives:  Headers from the first RTL file on only (D-009's impact line).
-Reason:        None of the 67 tracked files carried an SPDX header (only `LICENSE` held the
-               license text), and a reviewer or a tool
+Reason:        No tracked file carried an SPDX header: at commit 5892751 `reuse lint` reported
+               license information on 0 of the 59 files it examines (67 were tracked; only
+               `LICENSE` held the license text). A reviewer or a tool
                reading one file cannot see the repository's `LICENSE`. The REUSE check makes the
                rule mechanical.
 Impact:        `REUSE.toml`, `LICENSES/Apache-2.0.txt`, headers in 56 code files, Makefile target,
