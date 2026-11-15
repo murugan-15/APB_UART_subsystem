@@ -4,7 +4,7 @@ SHELL := /bin/bash
 EDA   ?= /opt/eda
 export PATH := $(EDA)/bin:$(PATH)
 
-.PHONY: help toolchain probe probe-accept probe-mac license clean
+.PHONY: help toolchain probe probe-accept probe-mac license check-docs clean
 
 help:
 	@echo "make toolchain     build pinned EDA tools into $(EDA) (sudo, ~40 min)"
@@ -12,6 +12,7 @@ help:
 	@echo "make probe-accept  overwrite the baseline with the latest results"
 	@echo "make probe-mac     run the original Mac M0 suite (tb/probes/mac_suite)"
 	@echo "make license       check SPDX license headers on every file (reuse lint)"
+	@echo "make check-docs    the project documents agree with each other and with the repository"
 	@echo "make clean         remove build/"
 
 toolchain:
@@ -32,6 +33,11 @@ probe-mac:
 # Every tracked file must carry SPDX license and copyright information (D-009).
 license:
 	reuse lint
+
+# Decisions, conventions, status, probes and Makefile must agree (scripts/check_docs.py).
+check-docs:
+	python3 scripts/check_docs.py --selftest
+	python3 scripts/check_docs.py
 
 clean:
 	rm -rf build

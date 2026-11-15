@@ -322,6 +322,24 @@ svlint_dual() {
     && grep -q 'keyword_forbidden_always' twin.log
 }
 
+# ------------------------------------------------------- p24 lint warnings ---
+# vl_lint_rejects <code> <verilator flags and file...>: lint must fail AND name <code>.
+vl_lint_rejects() {
+  local code=$1
+  shift
+  if verilator --lint-only "$@" >lint.log 2>&1; then
+    cat lint.log
+    return 1
+  fi
+  cat lint.log
+  grep -q "%Warning-$code" lint.log
+}
+# PROCASSINIT is off by default and on under -Wall.
+vl_procassinit() {
+  verilator --lint-only procassinit.sv || return 1
+  vl_lint_rejects PROCASSINIT -Wall procassinit.sv
+}
+
 # ----------------------------------------------------------------- probes ---
 check p01_sv_basics          verilator      verilator vl_sim p01_tb dut.sv tb.sv
 check p01_sv_basics          iverilog       iverilog  iv_sim p01_tb dut.sv tb.sv
@@ -402,6 +420,10 @@ check p21_register_gen       peakrdl        peakrdl   rdl_dual
 check p22_second_frontend    slang          python3   slang_dual
 check p22_second_frontend    iverilog       iverilog  iv_reject_bad
 check p23_style_lint         svlint         svlint    svlint_dual
+
+check p24_tb_lint            verilator-implicitstatic verilator vl_lint_rejects IMPLICITSTATIC static_init.sv
+check p24_tb_lint            verilator-width verilator vl_lint_rejects WIDTHEXPAND width.sv
+check p24_tb_lint            verilator-procassinit verilator vl_procassinit
 
 # ---------------------------------------------------------------- summary ---
 echo

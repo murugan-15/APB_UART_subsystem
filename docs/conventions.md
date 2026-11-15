@@ -38,8 +38,9 @@ The Python tools are pinned in `requirements-tools.txt`; lcov, sigrok-cli and ga
 `scripts/install_toolchain.sh` skips a tool that is already at its pinned version and exits
 nonzero if any step fails.
 
-Probe baseline: **40 PASS / 17 FAIL / 0 UNAVAIL** (57 checks, 23 probes; re-accepted 2026-11-15
-when D-011 to D-013 added p16 to p23 and turned p15 from UNAVAIL into three checks. Until then:
+Probe baseline: **43 PASS / 17 FAIL / 0 UNAVAIL** (60 checks, 24 probes; re-accepted 2026-11-15
+when D-011 to D-013 added p16 to p23 and turned p15 from UNAVAIL into three checks, 40 / 17 / 0
+over 57 checks, and again the same day when p24 gave rules 7 and 19 a probe. Until then:
 26 / 13 / 1 over 40 checks). Every FAIL below is a confirmed tool limitation (log read, cause
 known), not a probe bug.
 
@@ -97,6 +98,9 @@ installed there, and must fail with a clear message if the environment is missin
 | Packed struct (package typedef) on a module port | ✅ | ✅ | ✅ synth | p16 |
 | Named assignment pattern `'{member: value}` | ✅ | ❌ syntax error | ❌ syntax error | p16 |
 | A variable written by `always_ff` and by a second process (illegal, IEEE 1800 9.2.2.4) | lint warning MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it) |
+| Initializer on a variable declared in a procedural block (static: set once) | ✅ rejected, IMPLICITSTATIC | — | — | p24 |
+| Implicit width extension | ✅ rejected, WIDTHEXPAND | — | — | p24 |
+| Declaration initializer on a variable a process also assigns | accepted by default; rejected under `-Wall` (PROCASSINIT) | — | — | p24 |
 
 Other tools (D-013):
 
@@ -136,9 +140,11 @@ Other tools (D-013):
    check at the opposite edge.** (p04, BUG-001)
 6. **Verilator is the primary simulator.** Class-based, constrained-random
    and concurrent-SVA testbenches are Verilator-only. Icarus runs only plain
-   directed tests as a second opinion.
+   directed tests as a second opinion. (p05, p06, p09)
 7. **TBs must be Verilator lint-clean:** explicit width casts, and no
-   initializers on variables declared in procedural blocks (`IMPLICITSTATIC`).
+   initializers on variables declared in procedural blocks (`IMPLICITSTATIC`):
+   such a variable is static, so its initializer runs once, not on every
+   pass of a loop. (p24)
 8. **Self-checking verdict = exit code AND `PASS` marker AND no `FAIL`
    marker.** For Icarus, also grep the log for `ERROR`, because a failing
    assertion does not change its exit code. (p07) For UVM, also require
@@ -179,12 +185,12 @@ Other tools (D-013):
     `-Wno-MULTIDRIVEN` for that block alone. (p21, D-007)
 18. **Every new check is shown failing once** before it is relied on: each
     probe above keeps a file or a run that must fail. A tool that reports
-    nothing may simply not be looking.
+    nothing may simply not be looking. (p15 to p24)
 19. **PROPOSED:** `-Wall` on Verilator 5.050 enables PROCASSINIT (a
     declaration initializer on a variable that a process also assigns).
     Keep it on for `rtl/`, where reset, not an initializer, sets state
     (D-001). Waive it for testbench files, and locally for the
-    `f_past_valid` declaration of rule 9, where the initializer is the idiom.
+    `f_past_valid` declaration of rule 9, where the initializer is the idiom. (p24)
 
 ### 2.3 Findings from the original line not yet probed here
 
@@ -328,6 +334,7 @@ save the decoded log under `build/reports/bringup/`. That is hard evidence for t
 | `make bringup` | Capture + decode UART with `sigrok-cli` | `build/reports/bringup/` | planned |
 | `make vivado` | Tier 3: `vivado -mode batch -source scripts/vivado_build.tcl` (x86 machine only) | `build/reports/vivado/` | planned |
 | `make license` | `reuse lint`: every file has SPDX license and copyright information | exits nonzero on a missing header | yes |
+| `make check-docs` | `scripts/check_docs.py`: decision records complete; every cited decision, bug and probe exists; every rule cites a probe; this table matches the Makefile; the quoted baseline matches `expected.txt`. Runs its self-test first | exits nonzero on any disagreement | yes |
 | `make clean` | Removes `build/` only | — | yes |
 
 Every random seed used is printed and logged; `make sim TEST=x SEED=n` must reproduce a
@@ -342,4 +349,4 @@ GitHub Actions on every push: `make lint` + `make regression` (Verilator on Ubun
 from the local versions in §1.
 
 From Gate 9 (D-010) the workflow runs on the pinned image and also runs `make probe` and
-`make license`; a tool version that differs from §1.1 fails the job.
+`make license` and `make check-docs`; a tool version that differs from §1.1 fails the job.

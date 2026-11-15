@@ -55,3 +55,6 @@ p21_register_gen           peakrdl                PASS
 p22_second_frontend        slang                  PASS
 p22_second_frontend        iverilog               FAIL
 p23_style_lint             svlint                 PASS
+p24_tb_lint                verilator-implicitstatic PASS
+p24_tb_lint                verilator-width        PASS
+p24_tb_lint                verilator-procassinit  PASS

@@ -39,7 +39,7 @@ Status: pass / fail / not run / not applicable, with evidence.
 | Gate | Check | Candidate tools / structure | Status |
 |---|---|---|---|
 | 0 | Pinned toolchain, probe baseline, PLANS §2 skeleton | Verilator, Icarus, Yosys, sby, Yices, Z3; `make probe` | pass (2026-10-10) |
-| 1 | Tools for the later gates chosen and probed before anything relies on them (D-011 to D-014) | uvm-verilator, mcy, eqy, svlint, slang, PeakRDL, lcov, sigrok-cli, reuse; probes p15 to p23; `make license` | pass (2026-11-15): `make probe` 40 / 17 / 0 matches the new baseline; `reuse lint` 84 of 84 files |
+| 1 | Tools for the later gates chosen and probed before anything relies on them (D-011 to D-014) | uvm-verilator, mcy, eqy, svlint, slang, PeakRDL, lcov, sigrok-cli, reuse; probes p15 to p24; `make license` | pass (2026-11-15): `make probe` 43 / 17 / 0 matches the new baseline; `reuse lint` and `make check-docs` pass |
 | 2 | Requirements traceable by ID | `docs/spec.md` with REQ-* IDs | not run |
 | 3 | One register description generating docs and C header (D-007); board test sequencer designed (D-008) | SystemRDL + PeakRDL (`rdl/`, probed in p21); `rtl/board/` | not run |
 | 4 | Verification plan names a tool per check | `docs/verification_plan.md` | not run |
@@ -54,9 +54,10 @@ Status: pass / fail / not run / not applicable, with evidence.
 
 | Check | Status | Command | Evidence |
 |---|---|---|---|
-| Probes | pass — matches baseline (40 PASS / 17 FAIL known tool limits / 0 UNAVAIL over 57 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
+| Probes | pass — matches baseline (43 PASS / 17 FAIL known tool limits / 0 UNAVAIL over 60 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
 | Probes, original Mac suite | pass — matches its baseline (26 PASS / 8 FAIL / 1 UNAVAILABLE), 2026-11-15, cloud host | `make probe-mac` | `build/reports/probes_mac.txt`; `tb/probes/mac_suite/README.md` |
-| License headers | pass — 84 of 84 files, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
+| License headers | pass — every file, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
+| Documents agree with each other and the repository | pass, self-test 7 of 7, 2026-11-15 | `make check-docs` | `scripts/check_docs.py` output |
 | Lint | not run | `make lint` (not implemented) | |
 | Regression | not run | `make regression` (not implemented) | |
 | Formal | not run | `make formal` (not implemented) | |
@@ -117,7 +118,7 @@ bugs** (lint, uninitialized state at step 0). Read the log before recording a FA
 - Icarus cannot run class / SVA / bind / constrained-random TBs, and a failing assertion does not
   change its exit code → Icarus is for plain directed portability benches only.
 
-Findings of 2026-11-15 (probes p15 to p23):
+Findings of 2026-11-15 (probes p15 to p24):
 
 - Icarus rejects an interface port anywhere in the hierarchy, and Icarus and Yosys reject named
   assignment patterns → no interfaces in RTL, struct members assigned one by one (D-011).
