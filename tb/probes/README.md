@@ -1,6 +1,6 @@
 # Toolchain capability probes
 
-Suite M0 (p01 to p15, Gate 0) and the tool probes of D-011 to D-013 (p15 extended, p16 to p23).
+Suite M0 (p01 to p15, Gate 0) and the tool probes of D-011 to D-013 (p15 extended, p16 to p24).
 
 Run with `make probe`. Each check prints one line `probe check RESULT`;
 the set must match `expected.txt` exactly or `make probe` exits 1.
@@ -42,6 +42,7 @@ Design rules:
 | p21_register_gen | PeakRDL: C header, Markdown and a reference register block from SystemRDL; overlapping offsets are rejected | peakrdl |
 | p22_second_frontend | slang compiles a legal file and rejects a double-driven variable that Icarus accepts | slang, iverilog (known FAIL) |
 | p23_style_lint | svlint with `.svlint.toml` passes a conforming file and reports three planted violations | svlint |
+| p24_tb_lint | the lint warnings the testbench rules rely on fire: a static initializer in a loop, an implicit width extension, and (under `-Wall` only) a declaration initializer on a procedurally assigned variable | verilator-implicitstatic, verilator-width, verilator-procassinit |
 
 Changing the baseline: inspect `build/probe/diff.txt`, explain the change
 in `docs/bug_log.md` or `docs/conventions.md`, then `make probe-accept`.
