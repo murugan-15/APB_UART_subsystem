@@ -11,7 +11,13 @@ Checks (each prints one line per problem; exit 1 if any):
   4. every numbered rule of conventions section 2.2 cites a probe or a bug-log entry
   5. conventions section 7 and the Makefile list the same implemented targets
   6. conventions, project_status and the README quote the probe baseline that expected.txt holds:
-     PASS, FAIL and UNAVAIL counts, the number of checks, and (conventions, README) of probes
+     PASS, FAIL and UNAVAIL counts, the number of checks, and (conventions, README) of probes;
+     project_status also gives the right short form (P / F / U), self-test count and last decision,
+     and conventions the number of rules in .svlint.toml
+  7. no comment in a SystemVerilog or .vlt file starts with the word "verilator" unless it is a
+     pragma: Verilator reads such a comment as one and stops (conventions section 2.4)
+Not checked (read these by eye): a second, stale quote beside a correct one; whether a cited probe
+tests the claim that cites it; tool versions in section 1.1; numbers a probe asserts (38 of 40).
 
   scripts/check_docs.py            check the repository
   scripts/check_docs.py --selftest plant one error per check in memory; each must be reported
@@ -21,15 +27,21 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+PRAGMAS = ('lint_off', 'lint_on', 'lint_save', 'lint_restore', 'coverage_off', 'coverage_on', 'tracing_off',
+           'tracing_on', 'public', 'public_flat', 'public_flat_rd', 'public_flat_rw', 'no_inline_module',
+           'inline_module', 'no_inline_task', 'sc_bv', 'sformat', 'clock_enable', 'split_var', 'isolate_assignments')
 FIELDS = ('Date:', 'Phase:', 'Decision:', 'Alternatives:', 'Reason:', 'Impact:', 'Decided by:', 'Supersedes:')
 
 
 def load():
     names = {'dec': 'docs/decisions.md', 'conv': 'docs/conventions.md', 'st': 'docs/project_status.md',
              'bug': 'docs/bug_log.md', 'readme': 'tb/probes/README.md', 'sh': 'scripts/probe.sh',
-             'exp': 'tb/probes/expected.txt', 'mk': 'Makefile', 'top': 'README.md'}
+             'exp': 'tb/probes/expected.txt', 'mk': 'Makefile', 'top': 'README.md', 'sv': '.svlint.toml'}
     t = {k: (ROOT / v).read_text(encoding='utf-8') for k, v in names.items()}
     t['probes'] = sorted(d.name for d in (ROOT / 'tb/probes').glob('p[0-9][0-9]_*'))
+    t['hdl'] = {str(f.relative_to(ROOT)): f.read_text(encoding='utf-8', errors='replace')
+                for d in ('rtl', 'tb', 'formal', 'assertions') for f in sorted((ROOT / d).rglob('*'))
+                if f.suffix in ('.sv', '.svh', '.v', '.vlt') and 'mac_suite' not in f.parts}
     return t
 
 
@@ -87,6 +99,24 @@ def check(t):
                                ('conventions.md', t['conv'], f'{total} checks, {len(t["probes"])} probes')):
         if phrase not in text:
             probs.append(f'6 {name}: does not say "{phrase}"')
+    for name, text in t['hdl'].items():
+        for n, line in enumerate(text.splitlines(), 1):
+            m = re.match(r'\s*(?://|/\*)\s*verilator\b\s*(\w*)', line, re.I)
+            if m and m.group(1) not in PRAGMAS:
+                probs.append(f'7 {name}:{n}: a comment starts with "verilator"; Verilator will read it as a pragma')
+    for short in re.findall(r'`make probe` (\d+ / \d+ / \d+)', t['st']):
+        if short != f'{n_pass} / {n_fail} / {n_un}':
+            probs.append(f'6 project_status.md: quotes `make probe` {short}; expected.txt holds {n_pass} / {n_fail} / {n_un}')
+    n_mut = len(mutations(t))
+    for a, b in re.findall(r'self-test (\d+) of (\d+)', t['st']):
+        if (int(a), int(b)) != (n_mut, n_mut):
+            probs.append(f'6 project_status.md: says self-test {a} of {b}; check_docs has {n_mut} planted errors')
+    if ids and f'(D-001 to {ids[-1]})' not in t['st']:
+        probs.append(f'6 project_status.md: does not say the decisions run "(D-001 to {ids[-1]})"')
+    n_sv = len(re.findall(r'^[a-z_]+ = true', t['sv'], re.M))
+    for n in re.findall(r'each of its (\d+) rules', t['conv']):
+        if int(n) != n_sv:
+            probs.append(f'6 conventions.md: says svlint has {n} rules; .svlint.toml switches on {n_sv}')
     return probs, (len(ids), len(t['probes']), len(rules), base)
 
 
@@ -105,6 +135,11 @@ def mutations(t):
         ('a stale number of checks', 'conv', re.search(r'\((\d+ checks), \d+ probes', t['conv']).group(1), '1 checks', '6'),
         ('a probe that does not exist, cited by a decision', 'dec', 'p17 to p23', 'p17 to p93', '2'),
         ('a decision that does not exist, cited by the README', 'top', 'D-003', 'D-903', '2'),
+        ('a stale short baseline in the status file', 'st', '`make probe` ' + re.search(r'`make probe` (\d+ / \d+ / \d+)', t['st']).group(1), '`make probe` 1 / 1 / 1', '6'),
+        ('a stale self-test count', 'st', 'self-test ', 'self-test 3 of 3, not ', '6'),
+        ('a stale last decision', 'st', f'(D-001 to {last})', '(D-001 to D-002)', '6'),
+        ('a comment that Verilator reads as a pragma', 'hdl', None, None, '7'),
+        ('a stale number of svlint rules', 'conv', 'each of its ', 'each of its 99 rules, not ', '6'),
     ]
 
 
@@ -113,6 +148,13 @@ def selftest():
     clean, _ = check(t0)
     for name, key, old, new, kind in mutations(t0):
         t = dict(t0)
+        if key == 'hdl':                      # plant the comment in a copy of the first HDL file
+            first = sorted(t['hdl'])[0]
+            t['hdl'] = dict(t['hdl'], **{first: '// Verilator must reject this file.\n' + t['hdl'][first]})
+            hit = [p for p in check(t)[0] if p.startswith(kind + ' ') and p not in clean]
+            print(f'{"PASS" if hit else "MISS"}   {name}')
+            fails += not hit
+            continue
         if old not in t[key]:
             print(f'SETUP  {name}: anchor not found')
             fails += 1

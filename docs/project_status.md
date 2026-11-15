@@ -55,7 +55,7 @@ Status: pass / fail / not run / not applicable, with evidence.
 | Probes | pass — matches baseline (48 PASS / 20 FAIL known tool limits / 0 UNAVAIL over 68 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
 | Probes, original Mac suite | pass — matches its baseline (26 PASS / 8 FAIL / 1 UNAVAILABLE), 2026-11-15, cloud host | `make probe-mac` | `build/reports/probes_mac.txt`; `tb/probes/mac_suite/README.md` |
 | License headers | pass — every file, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
-| Documents agree with each other and the repository | pass, self-test 10 of 10, 2026-11-15 | `make check-docs` | `scripts/check_docs.py` output |
+| Documents agree with each other and the repository | pass, self-test 15 of 15, 2026-11-15 | `make check-docs` | `scripts/check_docs.py` output |
 | Lint | not run | `make lint` (not implemented) | |
 | Regression | not run | `make regression` (not implemented) | |
 | Formal | not run | `make formal` (not implemented) | |
@@ -78,7 +78,6 @@ separates **specified facts**, **design choices**, and **open questions**.
 | L6 | FIFOs (depth, full/empty, overflow policy) | done 2026-10-27 |
 | L7 | Registers and interrupts | done 2026-11-01 |
 | L8 | Verification strategy (sim / SVA / formal / FPGA split) | done 2026-11-02 |
-
 
 ## Gate 0 history
 

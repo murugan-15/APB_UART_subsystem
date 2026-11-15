@@ -188,9 +188,10 @@ Other tools (D-013):
     `scripts/slang_check.py` (it must run slang's analysis pass, or a
     double-driven variable goes unreported) and svlint with `.svlint.toml`
     (svlint checks only the rules its rule file lists: with an empty rule
-    file it reports nothing, and with no rule file at all version 0.9.5
-    switches every rule on, so the file is always passed with `-c`).
-    (p22, p23)
+    file it reports nothing, so the project file is always passed with
+    `-c`. When svlint finds no rule file at all, version 0.9.5 switches
+    every rule on; that was seen by hand on 2026-11-15 and is not pinned
+    by a probe). (p22, p23)
 17. **The PeakRDL reference register block** is generated with
     `--cpuif apb3-flat --default-reset arst_n --err-if-bad-addr` and is
     simulation-only, on Verilator: Icarus and Yosys both reject it, and
@@ -198,10 +199,11 @@ Other tools (D-013):
     cannot be compared with the hand-written block by eqy; the comparison
     is made in simulation. (p21, D-007)
 18. **Every new check is shown failing once** before it is relied on: each
-    probe from p15 to p26 keeps a file or a run that must fail, except
-    p17 (its evidence is a branch that must show count 0), p25 and p27
-    (ports of the original suite: a feature works or does not). A tool
-    that reports nothing may simply not be looking. (p15 to p26)
+    probe from p15 to p24 keeps a file or a run that must fail, except
+    p17 (its evidence is a branch that must show count 0). p25 to p27 are
+    ports of the original suite and keep no planted failure: a feature
+    works or does not. A tool that reports nothing may simply not be
+    looking. (p15 to p24)
 19. **PROCASSINIT stays on for `rtl/`** (D-016). `-Wall` on Verilator 5.050
     enables it (a declaration initializer on a variable that a process also
     assigns); in RTL, reset sets state, not an initializer (D-001). It is

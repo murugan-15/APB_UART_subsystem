@@ -201,7 +201,7 @@ Alternatives:  Keep UVM on EDA Playground only (D-003's impact line); drop UVM.
 Reason:        A result on EDA Playground cannot be rerun from this repository or by CI, so it
                could not meet the evidence rule. Probe p15 shows UVM 2020 with its DPI layer
                compiles and runs on Verilator 5.050 with 0 warnings and 0 errors. The library
-               build takes minutes, not seconds, so the three p15 checks share one build. The same probe pins one trap: a `uvm_error` leaves the
+               build takes over a minute, so the three p15 checks share one build. The same probe pins one trap: a `uvm_error` leaves the
                exit code at 0.
 Impact:        `scripts/install_toolchain.sh`; probe p15 (three checks); conventions rules 8 and
                14; the "EDA Playground for the UVM port" dependency in D-003 no longer blocks

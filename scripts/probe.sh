@@ -166,7 +166,7 @@ sby_p11() {
 # next to the pinned Verilator (D-012).
 : "${UVM_HOME:=$(dirname "$(command -v verilator 2>/dev/null || echo /nonexistent/bin/verilator)")/../share/uvm-verilator}"
 uvm_present() { [ -f "$UVM_HOME/src/uvm_pkg.sv" ] && [ -f "$UVM_HOME/src/dpi/uvm_dpi.cc" ]; }
-# The UVM library takes about two minutes to compile, so the three p15 checks
+# The UVM library takes over a minute to compile, so the three p15 checks
 # share one build, kept outside the per-check directories.
 uvm_bin() {
   local cache=$OUT/p15_uvm/_build
@@ -339,7 +339,7 @@ svlint_dual() {
   fi
   grep 'Fail' twin.log
   # Every rule the rule file switches on must be reported on the twin.
-  for rule in $(sed -n '/^\[syntaxrules\]/,$p' "$ROOT/.svlint.toml" | grep -oE '^[a-z_]+ = true' | cut -d' ' -f1); do
+  for rule in $(grep -oE '^[a-z_]+ = true' "$ROOT/.svlint.toml" | cut -d' ' -f1); do
     grep -Eq "Fail.*: $rule\$" twin.log || { echo "rule $rule: not reported on twin.sv"; missing=1; }
   done
   [ "$missing" -eq 0 ] || return 1

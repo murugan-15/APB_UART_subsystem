@@ -40,7 +40,7 @@ works around each one.
 
 ## Plan
 
-The project advances through thirteen phases (0 to 12), from requirements to FPGA bring-up and a design review,
+The project advances through thirteen phases (0 to 12), from tool checks and requirements to FPGA bring-up and a design review,
 and is released in three cuts (decision D-003):
 
 | Cut | Adds | State |
