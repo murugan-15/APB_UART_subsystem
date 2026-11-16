@@ -156,7 +156,7 @@ See `docs/decisions.md` (D-001 to D-016).
 - [x] Quality rules for every artifact and a light CI now — D-015, 2026-11-15
 - [x] Conventions rule 19 (PROCASSINIT on for `rtl/`, waived for testbenches) — D-016, 2026-11-15
 - [ ] Copyright holder name in the SPDX headers: `murugan-15` (the repository owner's handle) is
-      a placeholder; confirm or replace before the branch is merged
+      a placeholder; the branch was merged with it on 2026-11-16, and the name is still to be confirmed
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 

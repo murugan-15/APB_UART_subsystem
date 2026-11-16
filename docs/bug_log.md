@@ -1,6 +1,6 @@
 # Bug Log
 
-Real bugs only, appended at the end of every DEBUG-mode resolution. Never invent or
+Real bugs only, appended when a debug is resolved. Never invent or
 embellish an entry.
 
 ```text

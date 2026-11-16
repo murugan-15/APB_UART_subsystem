@@ -26,7 +26,7 @@ jobs:
       - name: License information on every file
         run: make license
       - name: Shell scripts
-        # tb/probes/mac_suite/probe.sh is the original suite, kept unedited (one SC2294 warning).
+        # tb/probes/mac_suite/probe.sh is the original suite, kept as written apart from one comment (one SC2294 warning).
         run: shellcheck -S warning scripts/*.sh tb/probes/p19_mutation/test_sim.sh
       - name: Python scripts
         run: ruff check --select F,E9,B scripts/*.py

@@ -88,7 +88,7 @@ Decision:      The project lives in `murugan-15/APB_UART_subsystem`, default bra
                `main` (the rebuilt Gate 0 line) is the project line; useful content from the
                original line (the original-line branch) is merged into it.
 Alternatives:  Keep the original line as the base and port the rebuild onto it; merge both histories.
-Reason:        Not stated when decided. (Claude's summary of the tradeoff, for review: `main`
+Reason:        Not stated when decided. (Summary of the tradeoff, written afterwards for review: `main`
                carries the verified cloud toolchain and probe baseline the remaining phases run on.)
 Impact:        project_status.md "Gate 0 history"; conventions.md §1–§2; bug_log.md.
 Decided by:    me

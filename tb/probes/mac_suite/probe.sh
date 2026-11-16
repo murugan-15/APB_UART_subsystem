@@ -120,7 +120,7 @@ for tool in verilator icarus; do
   sim_probe p06_param_bad "$tool" p06_param_check "$PDIR/p06_param_stub.sv $PDIR/p06_param_check.sv" "-DP06_DEPTH=3" elab_fail "power of two"
 done
 
-# UVM: library not installed; per the M0 card nothing is downloaded.
+# UVM: library not installed; this suite downloads nothing.
 if [ -n "${UVM_HOME:-}" ] && [ -f "$UVM_HOME/src/uvm_pkg.sv" ]; then
   record p_uvm verilator UNAVAILABLE "UVM_HOME set but no UVM probe written yet" "-" "-"
 else
