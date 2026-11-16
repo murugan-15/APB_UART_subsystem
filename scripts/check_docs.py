@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2026 murugan-15
+# SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 """check_docs.py: the project documents agree with each other and with the repository.
 
 Checks (each prints one line per problem; exit 1 if any):

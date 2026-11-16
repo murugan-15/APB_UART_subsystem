@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p16 testbench. Reset is released and the result is checked at negedge, so
 // sampling at posedge is race-free (p04 / BUG-001).

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p04: two-stage register pipeline. The point of the probe is the testbench
 // drive/sample discipline, not the DUT.

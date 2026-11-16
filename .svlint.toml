@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2026 murugan-15
+# SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 #
 # svlint rules for synthesizable RTL (rtl/), one line per rule of docs/conventions.md.
 # Every rule not listed here is off. Probe p23 keeps a file that must pass and one that must fail.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p07a: immediate assertions with action blocks (dual property).
 // a_good must never fire; a_bad must fire exactly twice. If a tool silently

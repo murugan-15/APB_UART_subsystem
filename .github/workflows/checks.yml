@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2026 murugan-15
+# SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 #
 # Light checks that need no EDA tool (D-015). The pinned-image workflow of D-010 comes at Gate 9.
 name: checks

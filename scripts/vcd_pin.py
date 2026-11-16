@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2026 murugan-15
+# SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 """vcd_pin.py: copy one 1-bit signal of a VCD into a minimal VCD (timescale 1 ns).
 
 sigrok-cli's VCD reader wants a small, single-bit dump; a simulator's dump holds every signal,

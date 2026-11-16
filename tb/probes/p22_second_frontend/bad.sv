@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p22 anti-vacuity: q is written by an always_ff and by an always_comb. Both slang
 // and Verilator must reject it (both call it illegal); Icarus 13.0 accepts it.

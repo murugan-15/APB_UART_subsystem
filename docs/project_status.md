@@ -7,7 +7,7 @@ Project:            APB UART
 Current phase/gate: 1 — Learn the block (in progress)
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-11-15
+Last updated:       2026-11-16
 ```
 
 ## Gate checklist
@@ -155,8 +155,7 @@ See `docs/decisions.md` (D-001 to D-016).
 - [x] License headers on every file — D-014, 2026-11-15
 - [x] Quality rules for every artifact and a light CI now — D-015, 2026-11-15
 - [x] Conventions rule 19 (PROCASSINIT on for `rtl/`, waived for testbenches) — D-016, 2026-11-15
-- [ ] Copyright holder name in the SPDX headers: `murugan-15` (the repository owner's handle) is
-      a placeholder; the branch was merged with it on 2026-11-16, and the name is still to be confirmed
+- [x] Copyright holder name in the SPDX headers — Ramasubbu Bala Murugan (2026-11-16)
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 

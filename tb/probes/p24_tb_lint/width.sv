@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p24: an implicit width extension. Verilator must reject this file with a
 // WIDTH warning; rule 7 asks for an explicit cast instead.

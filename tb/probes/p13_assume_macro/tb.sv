@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p13 sim: same RTL, ASSUME expands to assert.
 //   p13_tb_legal   : obeys the obligation       -> must finish with PROBE_PASS

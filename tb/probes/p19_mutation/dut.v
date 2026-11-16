@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p19: mutation coverage with mcy. Yosys plants one small change (a mutation)
 // at a time in this module; a testbench that checks the outputs must fail on

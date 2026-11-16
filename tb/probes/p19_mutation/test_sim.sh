@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2026 murugan-15
+# SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 #
 # mcy test: simulate the mutated module with the p19 testbench.
 # P19_DEFS is "-DWEAK" for the anti-vacuity run.

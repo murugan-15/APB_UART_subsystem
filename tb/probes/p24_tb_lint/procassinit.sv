@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p24: a declaration initializer on a variable that a process also assigns.
 // It is accepted by default and rejected under -Wall (PROCASSINIT): the basis

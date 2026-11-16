@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p04: race-free TB convention (fix for BUG-001).
 // Drive DUT inputs with NONBLOCKING assignments at the active clock edge and

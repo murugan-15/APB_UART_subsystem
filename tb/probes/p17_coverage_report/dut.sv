@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p17: code coverage that can be read. Verilator --coverage writes
 // coverage.dat; verilator_coverage converts it to lcov format; genhtml makes

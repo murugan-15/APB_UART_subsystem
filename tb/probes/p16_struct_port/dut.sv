@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p16: a packed struct, typedef'd in a package, on a module port. This is how
 // RTL bundles related signals now that interfaces are not allowed in rtl/

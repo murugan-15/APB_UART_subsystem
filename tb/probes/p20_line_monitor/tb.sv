@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p20: an independent line monitor. A behavioral transmitter sends three 8N1
 // bytes at 115200 baud; the testbench dumps a VCD; scripts/vcd_pin.py extracts

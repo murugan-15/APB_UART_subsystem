@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p01 testbench. Stimulus is driven at negedge so DUT sampling at posedge
 // is race-free (see p04 / BUG-001).

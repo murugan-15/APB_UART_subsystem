@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p23 anti-vacuity: one violation of every rule that .svlint.toml switches on. The probe
 // reads the rule names from the rule file and requires each of them in svlint's report,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2026 murugan-15
+# SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 """slang_check.py: compile SystemVerilog with slang, a second front end (D-013).
 
 Runs the full compilation and analysis that the slang command-line tool runs, through pyslang.

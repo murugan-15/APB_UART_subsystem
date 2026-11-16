@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // Ported from the original Mac suite (tb/probes/mac_suite) on 2026-11-15, milestone M0b.
 // p26 — covergroup / coverpoint (explicit bins) / cross, queried with

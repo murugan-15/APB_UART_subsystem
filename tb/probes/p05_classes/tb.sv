@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2026 murugan-15
+// SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
 //
 // p05: class-based testbench features: virtual class with pure virtual
 // method, inheritance with super.new, dynamic dispatch, queue of handles.
