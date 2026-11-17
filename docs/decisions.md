@@ -119,7 +119,7 @@ Decision:      The register map is described once in SystemRDL (`rdl/`). PeakRDL
                hand-written one in simulation.
 Alternatives:  Hand-written docs and header (they drift from the RTL); generate the RTL too
                (skips the decode / read-mux / W1C logic this project exists to practise, and the
-               generated SystemVerilog may not pass Yosys 0.69 without a probe).
+               generated SystemVerilog is rejected by Yosys 0.69 and Icarus, probe p21).
 Reason:        One source of truth for software-visible facts, an industry-standard format,
                installable with pip in the cloud host and in CI.
 Impact:        `rdl/`, Makefile target for generation, CI check that generated files are current.
