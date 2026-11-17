@@ -317,7 +317,7 @@ Alternatives:  A previous-sample flop updated every clock plus an edge flag held
 Reason:        Both find the edge within one tick (1/16 bit). Updating on ticks needs one flop and
                no flag, and a glitch that comes and goes between two ticks is never seen, so it
                cannot start a false frame check.
-Impact:        Guide Set L5 (the open choice becomes this decision), card 72, MCQ L5-06.
+Impact:        Guide Set L5 (the open choice becomes this decision), cards 3 and 36, MCQ L5-06.
 Decided by:    me
 Supersedes:    none
 
