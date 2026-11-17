@@ -305,3 +305,59 @@ Reason:        In RTL a declaration initializer hides state that reset should se
 Impact:        `docs/conventions.md` rule 19; `make lint` (Gate 5).
 Decided by:    me
 Supersedes:    none
+
+### D-017 — Receiver start edge: previous sample updated on ticks only
+Date:          2026-11-17
+Phase:         1 (applies from Gate 3)
+Decision:      The receiver's start-bit edge detector compares the synchronized line sampled at
+               this 16× tick with the sample taken at the previous tick; the previous-sample flop
+               is updated only on ticks.
+Alternatives:  A previous-sample flop updated every clock plus an edge flag held until the next
+               tick and cleared by it.
+Reason:        Both find the edge within one tick (1/16 bit). Updating on ticks needs one flop and
+               no flag, and a glitch that comes and goes between two ticks is never seen, so it
+               cannot start a false frame check.
+Impact:        Guide Set L5 (the open choice becomes this decision), card 72, MCQ L5-06.
+Decided by:    me
+Supersedes:    none
+
+### D-018 — Verification register model from the SystemRDL source (in principle)
+Date:          2026-11-17
+Phase:         1 (confirmed at Gate 4)
+Decision:      The verification register model is generated from the same SystemRDL source as the
+               header and docs (D-007), once a generator is chosen and passes a probe with a planted
+               failure (conventions rule 18). Gate 4 confirms it or records why not.
+Alternatives:  A hand-written register model; no register model (directed register tests only).
+Reason:        One source for every software-visible fact is the point of D-007; a hand-written
+               model is the one copy that could drift from the RTL unnoticed. No generator for it
+               is in the pinned toolchain today, so the choice waits for a probe.
+Impact:        Guide Set L7 (PROPOSED becomes this decision); Gate 4 verification plan; a new probe.
+Decided by:    me
+Supersedes:    none
+
+### D-019 — TX_OVF is a W1C event bit in INT_STATUS with its own enable
+Date:          2026-11-17
+Phase:         1 (applies from Gate 2; depends on seed open decision 3)
+Decision:      If a write to a full TX FIFO is dropped with a flag (seed open decision 3, still
+               open), the flag TX_OVF is a write-1-to-clear bit in INT_STATUS with its own INT_EN
+               bit, so it can raise irq like the receive error events.
+Alternatives:  The same bit with no enable (software polls it); a bit in STATUS, which would stop
+               STATUS being read-only.
+Reason:        A dropped byte is otherwise invisible to software; STATUS keeps live levels only and
+               INT_STATUS keeps latched events, one rule for every bit.
+Impact:        Guide 8.1 register map, the Doubts entry on a burst into a full TX FIFO, MCQ D9-03.
+Decided by:    me
+Supersedes:    none
+
+### D-020 — tx_done means the transmitter is idle
+Date:          2026-11-17
+Phase:         1 (applies from Gate 2)
+Decision:      tx_done is set when the last stop bit has left the shift register and the TX FIFO
+               is empty.
+Alternatives:  Set when the last byte leaves the FIFO; two separate bits for the two moments.
+Reason:        That is the moment software needs: to release an RS-485 driver (E-058), change the
+               baud rate or power down. FIFO empty is already covered by the TX level interrupt.
+Impact:        The Doubts entry on what tx_done means, and its follow-up; exhibit D27 (it sets the bit on the last FIFO
+               pop today); MCQ items on tx_done.
+Decided by:    me
+Supersedes:    none

@@ -130,7 +130,7 @@ Findings of 2026-11-15 (probes p15 to p27):
 
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-016).
+See `docs/decisions.md` (D-001 to D-020).
 
 ## Open decisions (mine to make)
 
@@ -156,6 +156,10 @@ See `docs/decisions.md` (D-001 to D-016).
 - [x] Quality rules for every artifact and a light CI now — D-015, 2026-11-15
 - [x] Conventions rule 19 (PROCASSINIT on for `rtl/`, waived for testbenches) — D-016, 2026-11-15
 - [x] Copyright holder name in the SPDX headers — Ramasubbu Bala Murugan (2026-11-16)
+- [x] Receiver start edge, previous sample on ticks — D-017, 2026-11-17
+- [x] Verification register model from SystemRDL, in principle — D-018, 2026-11-17 (confirm at Gate 4 after a probe)
+- [x] TX_OVF as a W1C INT_STATUS event with an enable — D-019, 2026-11-17 (depends on seed open decision 3)
+- [x] tx_done means the transmitter is idle — D-020, 2026-11-17
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 
