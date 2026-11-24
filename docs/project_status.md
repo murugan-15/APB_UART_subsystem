@@ -160,6 +160,11 @@ See `docs/decisions.md` (D-001 to D-020).
 - [x] Verification register model from SystemRDL, in principle — D-018, 2026-11-17 (confirm at Gate 4 after a probe)
 - [x] TX_OVF as a W1C INT_STATUS event with an enable — D-019, 2026-11-17 (depends on seed open decision 3)
 - [x] tx_done means the transmitter is idle — D-020, 2026-11-17
+- [ ] RX re-arm in a back-to-back burst — decide in Phase 3: as proposed, the receiver decides the stop
+      bit at tick 153 and updates its previous-sample flop on every tick, so a far end more than 3.90 %
+      fast (shared tick) loses the next start edge, and ±2 % at each end does not fit. Options: re-arm in
+      STOP (4.58 %), the restarted RX counter (4.56 % at D = 54), or a stated lower limit (found
+      2026-11-24 by a cycle model of the proposed receiver, Gate 1 checkpoint)
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 
