@@ -130,7 +130,7 @@ Findings of 2026-11-15 (probes p15 to p27):
 
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-020).
+See `docs/decisions.md` (D-001 to D-021).
 
 ## Open decisions (mine to make)
 
@@ -165,6 +165,8 @@ See `docs/decisions.md` (D-001 to D-020).
       fast (shared tick) loses the next start edge, and ±2 % at each end does not fit. Options: re-arm in
       STOP (4.58 %), the restarted RX counter (4.56 % at D = 54), or a stated lower limit (found
       2026-11-24 by a cycle model of the proposed receiver, Gate 1 checkpoint)
+- [x] Basis of every requirement and evidence of every behaviour — D-021, 2026-11-25 (study material is
+      overview only; enforced gate by gate from Gate 2)
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 

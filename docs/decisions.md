@@ -361,3 +361,31 @@ Impact:        The Doubts entry on what tx_done means, and its follow-up; exhibi
                pop today); MCQ items on tx_done.
 Decided by:    me
 Supersedes:    none
+
+### D-021 — Basis of every requirement, and evidence of every behaviour
+Date:          2026-11-25
+Phase:         1 (applies from Gate 2)
+Decision:      Study material (the revision guide, cards and Doubts notes) gives the overview of the
+               blocks and methods and is never the basis of a requirement or a design choice. Every
+               REQ-* in docs/spec.md names its basis: a primary reference [Rn §x], an item of the seed
+               spec, or an owner decision D-NNN; a design choice proposed in the study material enters
+               the spec only through an owner decision. Behaviour is established by evidence on the
+               pinned tools (simulation, formal, the board), found by trial and error and recorded with
+               its command and result. Each part is enforced at its gate: Gate 2, a basis column in
+               spec.md and a check_docs rule that refuses a requirement without a basis, shown failing
+               on a planted error first; Gates 2-3, every behaviour claim the spec takes is modelled
+               twice, by the author and by a second agent that has not seen the author's answer, and
+               counts only when the two agree; Gate 5 on, those claims become directed tests against
+               the RTL; Gate 7, a third-party line decoder (sigrok, probe p20) as an independent oracle.
+Alternatives:  Treat the study material as the reference design (its errors would flow into RTL and
+               tests, and the same author's text, model and answer key share one understanding);
+               adopt every check at once now (holds the project at Gate 1 for checks that only matter
+               from Gate 2).
+Reason:        Errata E-101 to E-107 were found after a 0-error acceptance sample, and all were
+               design-level or scope errors, the kind RTL, assertions and formal would inherit; a
+               requirement that names a primary basis and a behaviour shown on a tool cannot inherit
+               them. Phasing the checks by gate keeps the standard without stalling the project.
+Impact:        PLANS.md (private) phase criteria; docs/spec.md format at Gate 2; scripts/check_docs.py
+               gains a rule at Gate 2; verification plan (Gate 4) lists the independent oracle.
+Decided by:    me
+Supersedes:    none
