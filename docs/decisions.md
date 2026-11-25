@@ -371,20 +371,24 @@ Decision:      Study material (the revision guide, cards and Doubts notes) gives
                spec, or an owner decision D-NNN; a design choice proposed in the study material enters
                the spec only through an owner decision. Behaviour is established by evidence on the
                pinned tools (simulation, formal, the board), found by trial and error and recorded with
-               its command and result. Each part is enforced at its gate: Gate 2, a basis column in
-               spec.md and a check_docs rule that refuses a requirement without a basis, shown failing
-               on a planted error first; Gates 2-3, every behaviour claim the spec takes is modelled
-               twice, by the author and by a second agent that has not seen the author's answer, and
-               counts only when the two agree; Gate 5 on, those claims become directed tests against
-               the RTL; Gate 7, a third-party line decoder (sigrok, probe p20) as an independent oracle.
+               its command and result. Each part is enforced at its gate: Gate 2 entry, a check_docs
+               rule that refuses a requirement without a basis, shown failing on a planted fixture;
+               Gate 2 exit, that rule passing on docs/spec.md, which carries a basis column; Gates 2-3,
+               every behaviour claim the spec or the architecture takes is modelled twice, by the
+               author and by a second agent that has not seen the author's answer, and is accepted
+               only when the two agree; such a claim is still not evidence (the models are not pinned
+               tools, D-015) until Gate 5 on, when it becomes a directed test against the RTL; Gate 4,
+               the verification plan names those tests and the independent oracle; Gate 7, a
+               third-party line decoder (sigrok, probe p20) runs as that oracle.
 Alternatives:  Treat the study material as the reference design (its errors would flow into RTL and
                tests, and the same author's text, model and answer key share one understanding);
                adopt every check at once now (holds the project at Gate 1 for checks that only matter
                from Gate 2).
-Reason:        Errata E-101 to E-107 were found after a 0-error acceptance sample, and all were
-               design-level or scope errors, the kind RTL, assertions and formal would inherit; a
-               requirement that names a primary basis and a behaviour shown on a tool cannot inherit
-               them. Phasing the checks by gate keeps the standard without stalling the project.
+Reason:        Errata E-101 to E-107 were found after the 0-error acceptance sample of 2026-11-16,
+               some in material written after it; most are design-level (a wrong condition, a
+               receiver limit, an unqualified RAM read mode), the kind RTL, assertions and formal
+               would inherit, and one (E-106) is a citation scope error. A requirement that names a
+               primary basis and a behaviour shown on a tool cannot inherit them. Phasing the checks by gate keeps the standard without stalling the project.
 Impact:        PLANS.md (private) phase criteria; docs/spec.md format at Gate 2; scripts/check_docs.py
                gains a rule at Gate 2; verification plan (Gate 4) lists the independent oracle.
 Decided by:    me

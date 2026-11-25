@@ -7,7 +7,7 @@ Project:            APB UART
 Current phase/gate: 1 — Learn the block (in progress)
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-11-16
+Last updated:       2026-11-25
 ```
 
 ## Gate checklist
