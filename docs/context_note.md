@@ -45,13 +45,13 @@ identifiers let anyone obtain the same edition.
 | R17 | Digilent, *Basys 3 FPGA Board Reference Manual*, revised April 8, 2016 (board rev. C) |
 | R18 | C. E. Cummings and P. Alfke, *Simulation and Synthesis Techniques for Asynchronous FIFO Design with Asynchronous Pointer Comparisons*, SNUG San Jose 2002, rev 1.2 |
 | R19 | IEEE Std 1800-2023, *IEEE Standard for SystemVerilog*, approved 6 December 2023 |
+| R20 | C. E. Cummings, *Simulation and Synthesis Techniques for Asynchronous FIFO Design*, SNUG San Jose 2002, rev 1.3 |
 
 R4 calls the master the Requester and the slave the Completer. R17 gives page numbers of the
 form "Page n of 19", which the citations use.
 
-Still needed before Gate 3, if O-10 chooses two clocks: C. E. Cummings, *Simulation and Synthesis
-Techniques for Asynchronous FIFO Design*, SNUG San Jose 2002 (the FIFO with synchronized Gray
-pointers). R18 is its companion paper, which compares the pointers asynchronously instead.
+R20 synchronizes Gray-code pointers into the other clock domain before testing for full or empty;
+R18, its companion, compares the pointers asynchronously instead. Both inform O-10.
 
 ## 3. Specified facts
 
