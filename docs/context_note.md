@@ -135,7 +135,8 @@ three error kinds, the status and interrupt sets, the draft register map, and th
 non-goals (among them 5 to 7 data bits), and the optional v1.0 items (an async FIFO, loopback mode).
 Gate 2 accepts, changes or rejects each item that software, the bus or the far end would see, and
 records the basis of the requirement that results (D-021); the microarchitectural items (synchronizer
-depth, FIFO storage, the final register layout) are settled at Gate 3 (O-02, O-15).
+depth, FIFO storage, the final register layout) are settled at Gate 3 (O-02, O-15; the register layout from the seed's draft map,
+which it marks for Phase 3), and the async FIFO at Gate 3 with the v0.1 clock stated at Gate 2 (O-10).
 
 ### 5.2 Model claims (become evidence only as RTL tests, Gate 5 on)
 

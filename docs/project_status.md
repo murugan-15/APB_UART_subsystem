@@ -15,7 +15,7 @@ Last updated:       2026-11-26
 | Phase | Status (done / in progress / not started / N/A / not run) | Evidence or reason |
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
-| 1 Learn | in progress | L1–L8 done; `docs/context_note.md` drafted 2026-11-26, its fresh read and the exit checks open |
+| 1 Learn | in progress | L1–L8 done; `docs/context_note.md` drafted 2026-11-26 and read by a fresh reader (10 findings, all fixed; fix diff read again); the exit checks open |
 | 2 Requirements | not started | Input: `docs/uart_spec_seed.md` |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
@@ -172,4 +172,4 @@ See `docs/decisions.md` (D-001 to D-021).
 
 ## Next step
 
-A fresh reader reads `docs/context_note.md` in full (0 content errors); then the Gate 1 exit checks.
+The Gate 1 exit checks (PLANS.md §4).
