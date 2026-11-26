@@ -162,7 +162,7 @@ See `docs/decisions.md` (D-001 to D-021).
 - [x] tx_done means the transmitter is idle — D-020, 2026-11-17
 - [ ] RX re-arm in a back-to-back burst — decide in Phase 3: as proposed, the receiver decides the stop
       bit at tick 153 and updates its previous-sample flop on every tick, so a far end more than 3.90 %
-      fast (shared tick) loses the next start edge, and ±2 % at each end does not fit. Options: re-arm in
+      fast at 8N1 (shared tick; 3.53 % at 8E1) loses the next start edge, and ±2 % at each end does not fit. Options: re-arm in
       STOP (4.58 %), the restarted RX counter (4.56 % at D = 54), or a stated lower limit (found
       2026-11-24 by a cycle model of the proposed receiver, Gate 1 checkpoint)
 - [x] Basis of every requirement and evidence of every behaviour — D-021, 2026-11-25 (study material is

@@ -19,12 +19,12 @@ passes (D-021). The study material is overview only and is never the basis of a 
 A reusable UART peripheral that a CPU controls over APB: it serializes bytes from a TX FIFO,
 deserializes bytes into an RX FIFO, reports errors and raises an interrupt (seed spec, Purpose).
 
-It has three interfaces:
+The seed proposes three interfaces (seed spec, Proposed feature set; Gate 2 accepts or changes them):
 
 | Interface | Other side | Clock relation |
 |---|---|---|
 | APB3 completer (slave) | the CPU, through the interconnect and an APB bridge | synchronous to PCLK |
-| Serial pins `uart_tx`, `uart_rx` | a far-end device | the far end sends from its own clock (F-12) |
+| Serial pins `uart_tx`, `uart_rx` | a far-end device | the far end sends from its own clock (an asynchronous link, F-12 and §3) |
 | `irq` | the interrupt controller | synchronous to PCLK |
 
 On the Basys 3 demo the APB master is an on-board test sequencer, not a CPU (D-008).
@@ -55,7 +55,7 @@ R18, its companion, compares the pointers asynchronously instead. Both inform O-
 
 ## 3. Specified facts
 
-Facts about APB bind our design, because it is an APB completer, and so do facts about SystemVerilog
+Facts about APB bind our design once Gate 2 adopts the seed's APB3 completer, and so do facts about SystemVerilog
 (R19), the language of the RTL and testbenches. Facts about the Basys 3 and its FTDI bridge (R15 to
 R17) bind the board demo only. Facts about the 16550 and the PL011 describe that IP only: each is a
 comparison point, and binds our design only if Gate 2 or Gate 3 chooses the same behaviour.
@@ -73,17 +73,18 @@ comparison point, and binds our design only if Gate 2 or Gate 3 chooses the same
 | F-09 | In the 16550's FIFO mode an overrun occurs only after the FIFO is full and the next character has been completely received in the shift register; that character is overwritten and not transferred to the FIFO. | [R2 §8.4] |
 | F-10 | The PL011 has two clocks, PCLK and UARTCLK, and synchronizes control signals in both directions between them with synchronization registers and handshaking logic. | [R3 §2.2.10] |
 | F-11 | The PL011 divisor is F_UARTCLK / (16 × baud rate), split into an integer and a fractional register; new divisor values are not used until the current character has been sent or received; an integer divisor of 0 is invalid. | [R3 §3.3.6] |
-| F-12 | A UART link is asynchronous: no clock travels with the data, so the far end's transmitter runs from its own clock and `uart_rx` can change at any point of a PCLK cycle. | the 16550 describes its link as asynchronous data communications [R2 §8.1]; the second clause follows from the first |
+| F-12 | The 16550 describes its serial link as asynchronous data communications. | [R2 §8.1] |
 | F-13 | The Basys 3 has a single 100 MHz oscillator, on pin W5. | [R17 p. 6] |
-| F-14 | The Basys 3 connects an FTDI FT2232HQ USB-UART bridge to the FPGA through a two-wire serial port (TXD/RXD); the board's far end is therefore this chip. | [R17 p. 7] |
+| F-14 | The Basys 3 connects an FTDI FT2232HQ USB-UART bridge to the FPGA through a two-wire serial port (TXD/RXD). | [R17 p. 7] |
 | F-15 | The FT2232H baud rate generator gives the UART an x16 or x10 clock from a 120 MHz reference, through a 14-bit prescaler and 4 bits of fraction; its UART runs from 183 baud to 12 Mbaud, except 7, 9, 10 and 11 Mbaud. | [R16 §4.2] |
 | F-16 | For the FT232R, FT2232 (UART mode) and FT232B, FTDI states that a link should work without errors as long as the actual baud rate is within ±3 % of the required one, and its driver uses the closest divisor within that margin. | [R15, Baud Rate Calculation, p. 4] |
 | F-17 | The coverage of a covergroup is the weighted average of the coverage of its items (coverpoints and crosses). | [R19 §19.11] |
 | F-18 | A variable assigned in an `always_comb` procedure shall not be assigned by any other process. | [R19 §9.2.2.2] |
 
 F-16 is stated for FTDI's older devices; R16 points to R15 for the FT2232H's details, so the far end's
-actual error at each rate the spec promises is computed by script at Gate 2 (O-11). F-12 is why the
-receive input needs a synchronizer. How many stages it has is not a fact: it is a
+actual error at each rate the spec promises is computed by script at Gate 2 (O-11). On the board, F-14 makes the FT2232HQ the far end. On any asynchronous link (F-12) no clock
+travels with the data: the far end's transmitter runs from its own clock, so `uart_rx` can change at
+any point of a PCLK cycle. That is why the receive input needs a synchronizer. How many stages it has is not a fact: it is a
 Gate 3 choice (O-15).
 
 ## 4. Design choices recorded
@@ -126,21 +127,25 @@ D-019 together with O-03.
 
 ### 5.1 Seed proposals (become requirements only at Gate 2)
 
-Everything in `docs/uart_spec_seed.md` is a proposal: the frame (8 data bits, optional even or odd
+Everything in `docs/uart_spec_seed.md` is a proposal: the APB3 completer and the single `irq`
+output, the frame (8 data bits, optional even or odd
 parity, 1 or 2 stop bits, LSB first), the programmable divisor and 16× oversampling on RX, the
 two-flop receive synchronizer, the parameterized synchronous FIFOs on a simple dual-port RAM, the
 three error kinds, the status and interrupt sets, the draft register map, and the candidate
-non-goals (among them 5 to 7 data bits). Gate 2 accepts, changes or rejects each one and records the
-basis of the requirement that results (D-021).
+non-goals (among them 5 to 7 data bits), and the optional v1.0 items (an async FIFO, loopback mode).
+Gate 2 accepts, changes or rejects each item that software, the bus or the far end would see, and
+records the basis of the requirement that results (D-021); the microarchitectural items (synchronizer
+depth, FIFO storage, the final register layout) are settled at Gate 3 (O-02, O-15).
 
 ### 5.2 Model claims (become evidence only as RTL tests, Gate 5 on)
 
 | Claim | Where it is written | What settles it |
 |---|---|---|
-| As proposed (stop bit decided at the last sample, previous-sample flop updated on every tick), the receiver loses the next start edge in a back-to-back burst when the far end is fast beyond a limit, and the usual ±2 % at each end does not fit | `project_status.md`, open decision "RX re-arm" (limits and options) | O-11 at Gate 3, then a directed test against the RTL (D-021) |
+| As proposed (shared 16× tick, stop bit decided at the last stop sample, previous-sample flop updated on ticks only, D-017), the receiver loses the next start edge in a back-to-back burst when the far end is more than 3.90 % fast at 8N1 (3.53 % at 8E1), so the usual ±2 % at each end does not fit | `project_status.md`, open decision "RX re-arm" (limits and options) | O-11 at Gate 3, then a directed test against the RTL (D-021) |
 
-The model was written for the proposed receiver. D-017 changed when the previous-sample flop
-updates, so the Gate 2-3 double modelling (D-021) re-runs this claim on the receiver Gate 3 chooses.
+The model (`scripts/cp_l5_model.py`, private repo) was written for the proposed receiver, with
+D-017's tick-only previous sample. The Gate 2-3 double modelling (D-021) re-runs this claim on the
+receiver Gate 3 chooses (O-11).
 
 ## 6. Open questions
 
@@ -159,15 +164,16 @@ have an external face, so Gate 2 states the requirement and Gate 3 the design.
 | O-06 | Error and interrupt clear: W1C, clear on read, or both? (seed 6) | 2 | software: driver idioms | INT_STATUS block; SystemRDL access types |
 | O-07 | Unmapped or illegal address access: PSLVERR or silent? (seed 7) | 2 | the bus | address decode |
 | O-08 | BAUDDIV of 0 or too small: forbid, clamp or flag; PSLVERR on the write? (seed 8) | 2 | software (read-back, PSLVERR) and the line | baud generator guard |
-| O-09 | Does the completer insert wait states anywhere, or is it always zero-wait? (seed 9) | 2 | the bus: timing of every slave behind the bridge | PREADY logic; a registered PRDATA; decide with O-03 |
+| O-09 | Does the completer insert wait states anywhere, or is it always zero-wait? (seed 9) | 2 | the bus: the length of each transfer to this completer, and how long it holds the bridge | PREADY logic; a registered PRDATA; decide with O-03 |
 | O-10 | One clock in v0.1 and an async FIFO later, or two clocks from the start? (seed 10; recorded for Phase 3) | 3, with the v0.1 clock stated as a Gate 2 assumption | a second clock adds a port | CDC design; reset synchronizers per domain (D-001); O-12 |
 | O-11 | RX re-arm in a back-to-back burst: re-arm in STOP, a restarted RX counter, or a stated lower limit (§5.2; recorded for Phase 3) | 3, with the required far-end tolerance stated at Gate 2 (the board's far end is the FT2232HQ, F-14 to F-16) | the far end: the tolerance it may have | RX state machine |
 | O-12 | Scope of the structural CDC script (no free CDC sign-off tool, D-013) | 3, with O-10 | nobody outside | Gate 10 CDC review |
-| O-13 | Source of a TX level interrupt: the seed lists a TX-empty interrupt and D-020's reason relies on a TX level interrupt, but no INT_STATUS bit for it is proposed yet | 2 | software: when it may refill the TX FIFO | INT_STATUS and INT_EN maps |
+| O-13 | Source of the TX interrupt: the seed proposes a sticky TX-empty status bit, D-020's reason assumes a TX level interrupt, and the study guide's proposed INT_STATUS map has neither: sticky or level, empty or threshold? | 2 | software: when it may refill the TX FIFO | INT_STATUS and INT_EN maps |
 | O-14 | A status bit that shows a BAUDDIV write not yet in use (if the divisor change is deferred to a frame boundary) | 2 | software: when the new rate applies | STATUS map; baud generator update rule |
 | O-15 | Number of stages in the `uart_rx` synchronizer, from the MTBF at the chosen clock: MTBF = e^(S/τ) / (T_W · F_C · F_D), where S is the resolution time the stages give [R14 p. 28] | 3 | nobody outside, beyond latency | receiver front end |
 | O-16 | How coverage is reported: the standard defines a covergroup's coverage as the weighted average over its items (F-17), while Verilator's `get_inst_coverage()` gave bins hit over all bins in probe p26 (conventions §2.1) | before Gate 4 names a coverage target | nobody outside | coverage targets in the verification plan |
 | O-17 | A soft CPU running the C driver on the board | after v1.0 | nobody outside | — |
+| O-18 | Source of the RX interrupt: RX not empty or an RX threshold (the seed leaves both) | 2 | software: when it reads RXDATA | INT_STATUS and INT_EN maps; a threshold field in CTRL |
 
 ## 7. Learning checklist
 
