@@ -40,24 +40,25 @@ identifiers let anyone obtain the same edition.
 | R3 | ARM, *PrimeCell UART (PL011) Technical Reference Manual*, r1p5, ARM DDI 0183G |
 | R4 | ARM, *AMBA APB Protocol Specification*, ARM IHI 0024D |
 | R14 | R. Ginosar, *Metastability and Synchronizers: A Tutorial*, IEEE Design & Test of Computers, Sept./Oct. 2011, pp. 23-35 |
+| R15 | FTDI, *AN232B-05 Configuring FT232R, FT2232 and FT232B Baud Rates*, version 1.1, 2006 |
+| R16 | FTDI, *FT2232H Dual High Speed USB to Multipurpose UART/FIFO IC*, datasheet, version 2.6, Clearance No. FTDI#77 |
+| R17 | Digilent, *Basys 3 FPGA Board Reference Manual*, revised April 8, 2016 (board rev. C) |
+| R18 | C. E. Cummings and P. Alfke, *Simulation and Synthesis Techniques for Asynchronous FIFO Design with Asynchronous Pointer Comparisons*, SNUG San Jose 2002, rev 1.2 |
+| R19 | IEEE Std 1800-2023, *IEEE Standard for SystemVerilog*, approved 6 December 2023 |
 
-R4 calls the master the Requester and the slave the Completer.
+R4 calls the master the Requester and the slave the Completer. R17 gives page numbers of the
+form "Page n of 19", which the citations use.
 
-Still needed, each before the gate named. Their publishers refused an automated download on
-2026-11-26, so each is obtained by hand and registered (identifier and SHA-256) before it is cited:
-
-| Document | Needed for | By |
-|---|---|---|
-| FTDI application note AN_232B-05, *Configuring FT232R, FT2232 and FT232B Baud Rates*, and the datasheet of the USB-UART bridge the Basys 3 manual names | the baud error of the board's far end, which bounds the tolerance in O-11 | Gate 2 |
-| Digilent, *Basys 3 Reference Manual* | the board clock, the USB-UART connection and the pins (D-008) | Gate 3 |
-| C. E. Cummings, *Simulation and Synthesis Techniques for Asynchronous FIFO Design*, SNUG San Jose 2002 | Gray-pointer asynchronous FIFO, if O-10 chooses two clocks | Gate 3 |
-| IEEE Std 1800-2023, *SystemVerilog* (the full standard, not the listing) | assertion semantics and how a coverage number is defined (O-16) | Gate 4 |
+Still needed before Gate 3, if O-10 chooses two clocks: C. E. Cummings, *Simulation and Synthesis
+Techniques for Asynchronous FIFO Design*, SNUG San Jose 2002 (the FIFO with synchronized Gray
+pointers). R18 is its companion paper, which compares the pointers asynchronously instead.
 
 ## 3. Specified facts
 
-Facts about APB bind our design, because it is an APB completer. Facts about the 16550 and the
-PL011 describe that IP only: each is a comparison point, and binds our design only if Gate 2 or
-Gate 3 chooses the same behaviour.
+Facts about APB bind our design, because it is an APB completer, and so do facts about SystemVerilog
+(R19), the language of the RTL and testbenches. Facts about the Basys 3 and its FTDI bridge (R15 to
+R17) bind the board demo only. Facts about the 16550 and the PL011 describe that IP only: each is a
+comparison point, and binds our design only if Gate 2 or Gate 3 chooses the same behaviour.
 
 | # | Fact | Source |
 |---|---|---|
@@ -73,8 +74,16 @@ Gate 3 chooses the same behaviour.
 | F-10 | The PL011 has two clocks, PCLK and UARTCLK, and synchronizes control signals in both directions between them with synchronization registers and handshaking logic. | [R3 §2.2.10] |
 | F-11 | The PL011 divisor is F_UARTCLK / (16 × baud rate), split into an integer and a fractional register; new divisor values are not used until the current character has been sent or received; an integer divisor of 0 is invalid. | [R3 §3.3.6] |
 | F-12 | A UART link is asynchronous: no clock travels with the data, so the far end's transmitter runs from its own clock and `uart_rx` can change at any point of a PCLK cycle. | the 16550 describes its link as asynchronous data communications [R2 §8.1]; the second clause follows from the first |
+| F-13 | The Basys 3 has a single 100 MHz oscillator, on pin W5. | [R17 p. 6] |
+| F-14 | The Basys 3 connects an FTDI FT2232HQ USB-UART bridge to the FPGA through a two-wire serial port (TXD/RXD); the board's far end is therefore this chip. | [R17 p. 7] |
+| F-15 | The FT2232H baud rate generator gives the UART an x16 or x10 clock from a 120 MHz reference, through a 14-bit prescaler and 4 bits of fraction; its UART runs from 183 baud to 12 Mbaud, except 7, 9, 10 and 11 Mbaud. | [R16 §4.2] |
+| F-16 | For the FT232R, FT2232 (UART mode) and FT232B, FTDI states that a link should work without errors as long as the actual baud rate is within ±3 % of the required one, and its driver uses the closest divisor within that margin. | [R15, Baud Rate Calculation, p. 4] |
+| F-17 | The coverage of a covergroup is the weighted average of the coverage of its items (coverpoints and crosses). | [R19 §19.11] |
+| F-18 | A variable assigned in an `always_comb` procedure shall not be assigned by any other process. | [R19 §9.2.2.2] |
 
-F-12 is why the receive input needs a synchronizer. How many stages it has is not a fact: it is a
+F-16 is stated for FTDI's older devices; R16 points to R15 for the FT2232H's details, so the far end's
+actual error at each rate the spec promises is computed by script at Gate 2 (O-11). F-12 is why the
+receive input needs a synchronizer. How many stages it has is not a fact: it is a
 Gate 3 choice (O-15).
 
 ## 4. Design choices recorded
@@ -152,12 +161,12 @@ have an external face, so Gate 2 states the requirement and Gate 3 the design.
 | O-08 | BAUDDIV of 0 or too small: forbid, clamp or flag; PSLVERR on the write? (seed 8) | 2 | software (read-back, PSLVERR) and the line | baud generator guard |
 | O-09 | Does the completer insert wait states anywhere, or is it always zero-wait? (seed 9) | 2 | the bus: timing of every slave behind the bridge | PREADY logic; a registered PRDATA; decide with O-03 |
 | O-10 | One clock in v0.1 and an async FIFO later, or two clocks from the start? (seed 10; recorded for Phase 3) | 3, with the v0.1 clock stated as a Gate 2 assumption | a second clock adds a port | CDC design; reset synchronizers per domain (D-001); O-12 |
-| O-11 | RX re-arm in a back-to-back burst: re-arm in STOP, a restarted RX counter, or a stated lower limit (§5.2; recorded for Phase 3) | 3, with the required far-end tolerance stated at Gate 2 | the far end: the tolerance it may have | RX state machine |
+| O-11 | RX re-arm in a back-to-back burst: re-arm in STOP, a restarted RX counter, or a stated lower limit (§5.2; recorded for Phase 3) | 3, with the required far-end tolerance stated at Gate 2 (the board's far end is the FT2232HQ, F-14 to F-16) | the far end: the tolerance it may have | RX state machine |
 | O-12 | Scope of the structural CDC script (no free CDC sign-off tool, D-013) | 3, with O-10 | nobody outside | Gate 10 CDC review |
 | O-13 | Source of a TX level interrupt: the seed lists a TX-empty interrupt and D-020's reason relies on a TX level interrupt, but no INT_STATUS bit for it is proposed yet | 2 | software: when it may refill the TX FIFO | INT_STATUS and INT_EN maps |
 | O-14 | A status bit that shows a BAUDDIV write not yet in use (if the divisor change is deferred to a frame boundary) | 2 | software: when the new rate applies | STATUS map; baud generator update rule |
 | O-15 | Number of stages in the `uart_rx` synchronizer, from the MTBF at the chosen clock: MTBF = e^(S/τ) / (T_W · F_C · F_D), where S is the resolution time the stages give [R14 p. 28] | 3 | nobody outside, beyond latency | receiver front end |
-| O-16 | What Verilator's `get_inst_coverage()` number means against IEEE 1800 | before Gate 4 names a coverage target | nobody outside | coverage targets in the verification plan |
+| O-16 | How coverage is reported: the standard defines a covergroup's coverage as the weighted average over its items (F-17), while Verilator's `get_inst_coverage()` gave bins hit over all bins in probe p26 (conventions §2.1) | before Gate 4 names a coverage target | nobody outside | coverage targets in the verification plan |
 | O-17 | A soft CPU running the C driver on the board | after v1.0 | nobody outside | — |
 
 ## 7. Learning checklist
