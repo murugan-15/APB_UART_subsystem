@@ -7,7 +7,7 @@ Project:            APB UART
 Current phase/gate: 1 — Learn the block (in progress)
 Target release cut: v1.0, staged v0.1 → v0.5 → v1.0 (D-003)
 Active milestone:   none — Gate 1 deliverable is a context note + learning checklist in docs/
-Last updated:       2026-11-25
+Last updated:       2026-11-26
 ```
 
 ## Gate checklist
@@ -15,7 +15,7 @@ Last updated:       2026-11-25
 | Phase | Status (done / in progress / not started / N/A / not run) | Evidence or reason |
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
-| 1 Learn | in progress | L1–L8 done; context note open |
+| 1 Learn | in progress | L1–L8 done; `docs/context_note.md` drafted 2026-11-26, its fresh read and the exit checks open |
 | 2 Requirements | not started | Input: `docs/uart_spec_seed.md` |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
@@ -172,4 +172,4 @@ See `docs/decisions.md` (D-001 to D-021).
 
 ## Next step
 
-`docs/context_note.md` to close Gate 1.
+A fresh reader reads `docs/context_note.md` in full (0 content errors); then the Gate 1 exit checks.
