@@ -10,7 +10,8 @@
 // Self-checking: after one sample the instance coverage must be 37.50 (3 of the 8 bins: one
 // of 2, one of 2, one of 4), and exactly 100 after all bins are hit. A tool that parses
 // covergroups but never counts fails. 37.50 is what Verilator 5.050 returns (bins hit over
-// bins); whether IEEE 1800 defines the same number has not been checked against the standard.
+// bins); IEEE 1800-2023 19.11 defines the weighted average over coverpoints and crosses, which
+// gives 41.67 here (checked 2026-11-26, conventions 2.1), so this pins the tool, not the standard.
 
 module p26_tb;
 

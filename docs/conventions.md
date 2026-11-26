@@ -102,12 +102,12 @@ installed there, and must fail with a clear message if the environment is missin
 | A `uvm_error` → nonzero exit | ❌ exits 0; the report counts show it | — | — | p15 |
 | Packed struct (package typedef) on a module port | ✅ | ✅ | ✅ synth | p16 |
 | Named assignment pattern `'{member: value}` | ✅ | ❌ syntax error | ❌ syntax error | p16 |
-| A variable written by `always_comb` and by a second process (illegal: Verilator's message names IEEE 1800-2023 9.2.2.2; the clause itself has not been read, the standard is not among the project's references) | ✅ rejected, MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it, but only with its analysis pass) |
+| A variable written by `always_comb` and by a second process (illegal: IEEE 1800-2023 §9.2.2.2 says a variable assigned in `always_comb` shall not be assigned by any other process; read 2026-11-26, R19 in `docs/context_note.md`) | ✅ rejected, MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it, but only with its analysis pass) |
 | Initializer on a variable declared in a procedural block (static: set once) | ✅ rejected, IMPLICITSTATIC | — | — | p24 |
 | Implicit width extension | ✅ rejected, WIDTHEXPAND | — | — | p24 |
 | Declaration initializer on a variable a process also assigns | accepted by default; rejected under `-Wall` (PROCASSINIT) | — | — | p24 |
 | Classes with a `mailbox` between two processes | ✅ | ❌ syntax error | — | p25 |
-| `covergroup` / `coverpoint` / `cross`, queried with `get_inst_coverage()` | ✅ 37.5 after one sample (3 of the 8 bins), then 100. Whether IEEE 1800 defines 37.5 or the average over the three items (41.7) has not been checked against the standard | ❌ syntax error | — | p26 |
+| `covergroup` / `coverpoint` / `cross`, queried with `get_inst_coverage()` | ✅ counts bins, then 100 after every bin is hit; but the number departs from the standard: after one sample it returns 37.5 (3 of the 8 bins), while IEEE 1800-2023 §19.11 defines a covergroup's coverage as the weighted average over its coverpoints and crosses, default weight 1 (§19.7), which gives 41.67 (50, 50 and 25 over the three items; computed 2026-11-26). A coverage target is therefore stated on numbers computed to the standard, not on this value (Gate 4) | ❌ syntax error | — | p26 |
 | Type-level `get_coverage()` | ❌ returns 0 with every bin hit | — | — | p26 |
 | FST waveform dump | ✅ `--trace-fst` (needs `liblz4-dev`) | ✅ `vvp -fst` | — | p27 |
 

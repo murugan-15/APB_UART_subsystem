@@ -124,9 +124,9 @@ Findings of 2026-11-15 (probes p15 to p27):
   (MULTIDRIVEN) and slang rejects it.
 - Verilator 5.050 reports PROCASSINIT only under `-Wall` (p24). Ubuntu 24.04's 5.020 does not
   report it at all (seen by hand, not pinned by a probe) → results count only on the pinned version.
-- Verilator's `get_inst_coverage()` returns bins hit over bins (37.5 for 3 of 8 in p26). Whether
-  IEEE 1800 defines that number or the average over coverpoints and crosses is not yet checked
-  against the standard → check it before Gate 4 names a coverage target.
+- Verilator's `get_inst_coverage()` returns bins hit over bins (37.5 for 3 of 8 in p26). IEEE
+  1800-2023 §19.11 defines the weighted average over coverpoints and crosses, 41.67 for p26
+  (checked 2026-11-26) → Gate 4 states coverage targets on numbers computed to the standard (O-16).
 
 ## Decisions
 
