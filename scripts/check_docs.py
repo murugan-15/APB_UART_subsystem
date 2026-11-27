@@ -353,6 +353,9 @@ def selftest():
     t0['spec'] = FIXTURE                      # the self-test tests the checker: check 8 always runs on the fixture,
     #                                           never on the real spec.md (read of the step-0 fixes, fixes6b finding 1)
     clean, _ = check(t0)
+    false_pos = [x for x in clean if x.startswith('8 ')]   # the correct fixture must pass check 8 (fixes7 finding 4)
+    print(f'{"PASS" if not false_pos else "FAIL"}   the correct fixture passes check 8' + ''.join('\n       ' + x for x in false_pos))
+    fails += bool(false_pos)
     for name, key, old, new, kind in mutations(t0):
         t = dict(t0)
         if key == 'hdl':                      # plant the comment in a copy of the first HDL file
@@ -371,7 +374,8 @@ def selftest():
         print(f'{"PASS" if hit else "MISS"}   {name}')
         fails += not hit
     n = len(mutations(t0))
-    print(f'check_docs self-test: {"pass" if not fails else "FAIL"} ({n - fails} of {n} caught)')
+    print(f'check_docs self-test: {"pass" if not fails else "FAIL"} ({n - fails} of {n} caught'
+          f'{"" if not false_pos else "; the correct fixture fails check 8"})')
     return 1 if fails else 0
 
 
