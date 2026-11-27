@@ -410,7 +410,9 @@ Decision:      Gate 1 closes with the study guide, cards and Doubts notes frozen
                change to the guide is either an erratum fix (AGENTS.md §5 procedure: erratum row,
                rule, rebuild) or a claim upgraded with evidence, a reference to the test, assertion,
                formal job or board report on the pinned tools that shows it, added when that evidence
-               exists. Errors found later are fixed as errata when found.
+               exists. Errors found later are fixed as errata when found. Exception (owner,
+               2026-11-27): a new doubt may still get a new Doubts entry, written and read under the
+               rules of AGENTS.md §5.
 Alternatives:  Draw further samples until one reads 0 content errors (costly, and partly luck: at the
                measured hardware rate about 37 % of draws of this shape find no error among their 132
                hardware items); a full line-by-line read of
