@@ -477,3 +477,23 @@ Impact:        scripts/check_docs.py check 8 (self-test 43 of 43); conventions s
                private session_state.md handoff; the Gate 2 deliverable.
 Decided by:    me
 Supersedes:    none
+
+### D-024 — One executable model and a second reader for behaviour claims at Gates 2-3; the 15-day plan
+Date:          2026-11-27
+Phase:         2 (Gate 2 entry; applies to Gates 2-3)
+Decision:      Every behaviour claim the spec or the architecture takes is backed by one executable
+               model in scripts/ (a cycle model whose assertions state the claim and which is shown
+               failing on a planted bug), read by a second reader with no authoring context; it is
+               accepted when the reader finds no ERROR. It stays a claim, not evidence, until its
+               Gate 5 directed test passes against the RTL (D-021 unchanged on that point). The owner
+               also set the project's plan: all three releases (D-003) complete within 15 days, by
+               2026-12-12, with every task that does not serve the standard cut.
+Alternatives:  Two independent models per claim, the second written without the first author's
+               answer (D-021 as written: two models' work for each claim, and both remain claims until
+               Gate 5); no model before the RTL (claims reach the RTL unchecked).
+Reason:        The Gate 5 directed test against the RTL is the oracle; a second model before it adds
+               less than its cost under a 15-day plan, while one executable model read by a second
+               reader still catches the errors a model catches (E-104, E-134 were found this way).
+Impact:        PLANS.md (private) row "2-3"; the Gate 3 receiver model; the private session state.
+Decided by:    me
+Supersedes:    D-021 in part: its double modelling at Gates 2-3 only; every other part of D-021 stands.

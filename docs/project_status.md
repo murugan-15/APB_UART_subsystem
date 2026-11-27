@@ -130,7 +130,7 @@ Findings of 2026-11-15 (probes p15 to p27):
 
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-023).
+See `docs/decisions.md` (D-001 to D-024).
 
 ## Open decisions (mine to make)
 
@@ -169,6 +169,7 @@ See `docs/decisions.md` (D-001 to D-023).
       overview only; enforced gate by gate from Gate 2)
 - [x] Gate 1 closed on measured error rates; study guide frozen, later changes are errata or evidence links; new Doubts entries stay allowed — D-022, 2026-11-27
 - [x] Layout of docs/spec.md (ID, Requirement, Basis, Stage, Verify method, How would you verify it?; Assumptions, Non-goals, Unsupported behaviour, Open items) — D-023, 2026-11-27
+- [x] One executable model plus a second reader for behaviour claims at Gates 2-3; all releases within 15 days (by 2026-12-12) — D-024, 2026-11-27
 - [ ] Shadow BAUDDIV load against RX start detection — decide in Phase 3 with the receiver: with the proposed
       up-counter (restart at 0 on a load), a load between a start edge and the tick that detects it delays the
       detection by up to 2D − 2 cycles instead of D − 1, which narrows the receiver's error budget (found 2026-11-27 by
