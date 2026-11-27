@@ -16,7 +16,7 @@ Last updated:       2026-11-27
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
 | 1 Learn | done (2026-11-27) | `docs/context_note.md` (fresh read: 1 error, fixed; acceptance read: 0 content errors); exit checks: guide check and self-test pass, check_quality_plan and `make check-docs` pass, rule audit of 45 boxes (`rule_audit.py` 100 of 100 checks), errata trend recorded; three weighted acceptance samples (1, 3, 1 content errors, all fixed); closed on measured error rates with the study guide frozen (D-022) |
-| 2 Requirements | in progress (entry) | Input: `docs/uart_spec_seed.md`, `docs/context_note.md`; entry: the revisit list, the check_docs basis rule (D-021) and the guide-freeze rule in the private guide_check.py (D-022) |
+| 2 Requirements | in progress (entry) | Input: `docs/uart_spec_seed.md`, `docs/context_note.md`; entry: the check_docs basis and layout rule (D-021, D-023; check 8, done 2026-11-27) and the guide-freeze rule in the private guide_check.py (D-022; done 2026-11-27); the revisit list is asked with each seed decision |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
 | 5 Stage 1 RTL | not started | |
@@ -174,7 +174,7 @@ See `docs/decisions.md` (D-001 to D-023).
 
 ## Next step
 
-Gate 2 entry (REQUIREMENTS): the check_docs rule of D-021 and the layout of D-023 are in place (check 8); the private
-guide_check.py freeze rule of D-022 is next. Then the owner resolves the seed open decisions that affect external
+Gate 2 entry (REQUIREMENTS): the check_docs rule of D-021 and the layout of D-023 are in place (check 8), and the
+private guide_check.py freeze rule of D-022 (check F, baseline at the Gate 1 close-fix commit). Then the owner resolves the seed open decisions that affect external
 behaviour, group by group (APB: 3, 4, 7, 9; FIFO and errors: 5, 1; registers: 6, 8), each with its Gate 2 revisit
 items first, and `docs/spec.md` is written in the layout of D-023.
