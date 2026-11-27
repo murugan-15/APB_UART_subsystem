@@ -55,7 +55,7 @@ Status: pass / fail / not run / not applicable, with evidence.
 | Probes | pass — matches baseline (48 PASS / 20 FAIL known tool limits / 0 UNAVAIL over 68 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
 | Probes, original Mac suite | pass — matches its baseline (26 PASS / 8 FAIL / 1 UNAVAILABLE), 2026-11-15, cloud host | `make probe-mac` | `build/reports/probes_mac.txt`; `tb/probes/mac_suite/README.md` |
 | License headers | pass — every file, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
-| Documents agree with each other and the repository | pass, self-test 43 of 43 (check 8, the spec basis rule of D-021 and the layout of D-023, added 2026-11-27 and shown failing on 28 planted errors in a fixture), 2026-11-27 | `make check-docs` | `scripts/check_docs.py` output |
+| Documents agree with each other and the repository | pass, self-test 46 of 46 (check 8, the spec basis rule of D-021 and the layout of D-023, added 2026-11-27 and shown failing on 31 planted errors in a fixture, whose correct form must pass), 2026-11-27 | `make check-docs` | `scripts/check_docs.py` output |
 | Lint | not run | `make lint` (not implemented) | |
 | Regression | not run | `make regression` (not implemented) | |
 | Formal | not run | `make formal` (not implemented) | |
@@ -169,6 +169,10 @@ See `docs/decisions.md` (D-001 to D-023).
       overview only; enforced gate by gate from Gate 2)
 - [x] Gate 1 closed on measured error rates; study guide frozen, later changes are errata or evidence links; new Doubts entries stay allowed — D-022, 2026-11-27
 - [x] Layout of docs/spec.md (ID, Requirement, Basis, Stage, Verify method, How would you verify it?; Assumptions, Non-goals, Unsupported behaviour, Open items) — D-023, 2026-11-27
+- [ ] Shadow BAUDDIV load against RX start detection — decide in Phase 3 with the receiver: with the proposed
+      up-counter (restart at 0 on a load), a load between a start edge and the tick that detects it delays the
+      detection by up to 2D − 2 cycles instead of D − 1, which narrows the receiver's error budget (found 2026-11-27 by
+      the second reader's cycle model, private read fixes8 finding 6; to be re-run in the Gate 3 receiver model)
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 

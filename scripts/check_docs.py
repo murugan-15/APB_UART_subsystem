@@ -145,6 +145,7 @@ FIXTURE = """# Fixture (check_docs self-test only)
 | REQ-IF-001 | The slave shall complete a transfer in two cycles when PREADY is held high. | [R4 §3.1]; seed: Bus | v0.1 | sim, assertion | directed test: one write, one read, cycle count |
 | REQ-FUNC-001 | The transmitter shall send the data bits LSB first. | seed: Frame | v0.1 | sim | line monitor decodes a known byte |
 | REQ-RST-001 | Reset shall assert asynchronously and release synchronously. | D-001 | v0.1 | formal, review | assertion on the reset synchronizer |
+| REQ-PAR-001 | The parity bit shall be the XOR \\| reduction of the data bits for even parity. | seed: Frame | v0.1 | sim | compare with ^data in the scoreboard |
 
 ## Assumptions
 
@@ -172,7 +173,7 @@ FIXTURE = """# Fixture (check_docs self-test only)
 """
 AREAS = {'FUNC', 'IF', 'TIM', 'RST', 'ERR', 'PAR', 'NF'}              # PLANS.md Phase 2
 VAGUE = re.compile(r'\b(?:should|may|TBD|TBC|etc|and/or|as appropriate)\b', re.I)
-PLACEHOLDER = re.compile(r'^(?:|TBD|TBC|-|—|–|n/?a|none|\?+)$', re.I)
+PLACEHOLDER = re.compile(r'^\W*$|\b(?:TBD|TBC|to be (?:decided|defined|determined|confirmed))\b|^(?:n/?a|none)\W*$', re.I)
 STAGES = {'v0.1', 'v0.5', 'v1.0'}
 METHODS = {'sim', 'assertion', 'formal', 'board', 'review'}
 RUN = {'sim', 'assertion', 'formal', 'board'}                        # a test, an assertion or a formal property (AGENTS.md §12)
@@ -187,7 +188,8 @@ SECTIONS = (                                                          # (heading
 
 def tables(text):
     for block in re.findall(r'^(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)*)', text, re.M):
-        rows = [[c.strip() for c in r.strip().strip('|').split('|')] for r in block.strip().splitlines()]
+        rows = [[c.strip().replace('\\|', '|') for c in re.split(r'(?<!\\)\|', r.strip()[1:-1])]   # an escaped \| stays in its cell
+                for r in block.strip().splitlines()]
         yield [h.lower() for h in rows[0]], [r + [''] * (len(rows[0]) - len(r)) for r in rows[2:]]
 
 
@@ -203,7 +205,7 @@ def basis_problems(rid, basis, ids, refs, items):
     if not parts:
         probs.append(f'8 spec.md: {rid}: the Basis names no [Rn §x], D-NNN or "seed: <item>"')
     for part in parts:
-        m_r = re.fullmatch(r'\[(R\d+) §[^\];,\[]+\]', part)
+        m_r = re.fullmatch(r'\[(R\d+) §\s?\d[^\];,\[]*\]', part)          # a section number, not a placeholder
         m_d = re.fullmatch(r'D-\d{3}', part)
         m_s = re.fullmatch(r'seed: (.+)', part)
         if m_r:
@@ -264,6 +266,8 @@ def check_spec(t, ids):
                 probs.append(f'8 spec.md: {rid}: the Verify method has no sim, assertion, formal or board (review never stands alone)')
             if PLACEHOLDER.match(cell['how would you verify it?']):
                 probs.append(f'8 spec.md: {rid}: the "How would you verify it?" cell is empty or a placeholder')
+    for rid in sorted(set(re.findall(r'\bREQ-[A-Z]+-\d{3}\b', t['spec'])) - seen):
+        probs.append(f'8 spec.md: {rid} appears outside a requirement table and is defined in none (a requirement lives in a table row)')
     if not seen:
         probs.append('8 spec.md: no requirement row (an ID cell REQ-<AREA>-NNN in a table with the D-023 columns)')
     for name, form, cols in SECTIONS:
@@ -345,6 +349,9 @@ def mutations(t):
         ('an Open items section with no table', 'spec', '| ID | Item | Affects | Decides | Gate |\n|---|---|---|---|---|\n', '', '8'),
         ('an open item decided by nobody', 'spec', '| owner | 3 |', '| TBD | 3 |', '8'),
         ('an open item at a gate that does not exist', 'spec', '| owner | 3 |', '| owner | 99 |', '8'),
+        ('a requirement written as a bullet, outside any table', 'spec', '## Assumptions', '- REQ-ERR-009: the UART shall flag a break.\n\n## Assumptions', '8'),
+        ('a verify question that is a placeholder sentence', 'spec', '| line monitor decodes a known byte |', '| TBD later. |', '8'),
+        ('a reference with a placeholder section', 'spec', '[R4 §3.1]', '[R4 §x]', '8'),
     ]
 
 
@@ -374,7 +381,8 @@ def selftest():
         print(f'{"PASS" if hit else "MISS"}   {name}')
         fails += not hit
     n = len(mutations(t0))
-    print(f'check_docs self-test: {"pass" if not fails else "FAIL"} ({n - fails} of {n} caught'
+    missed = fails - bool(false_pos)
+    print(f'check_docs self-test: {"pass" if not fails else "FAIL"} ({n - missed} of {n} caught'
           f'{"" if not false_pos else "; the correct fixture fails check 8"})')
     return 1 if fails else 0
 
