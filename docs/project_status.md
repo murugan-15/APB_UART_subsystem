@@ -15,8 +15,8 @@ Last updated:       2026-11-27
 | Phase | Status (done / in progress / not started / N/A / not run) | Evidence or reason |
 |---|---|---|
 | 0 Inspect & bound | done (2026-10-10, rebuilt same day) | Toolchain baseline M0: `make probe` matches `tb/probes/expected.txt`; release cut D-003. See "Gate 0 history" below. |
-| 1 Learn | done (2026-11-27) | `docs/context_note.md` (fresh read and acceptance read, 0 content errors); exit checks: guide check and self-test pass, check_quality_plan and `make check-docs` pass, rule audit 45 boxes (100 of 100), errata trend recorded; three weighted acceptance samples (1, 3, 1 content errors, all fixed); closed on a measured error rate with the study guide frozen (D-022) |
-| 2 Requirements | in progress (entry) | Input: `docs/uart_spec_seed.md`, `docs/context_note.md`; entry: the revisit list, the check_docs basis rule (D-021) and the guide-freeze rule (D-022) |
+| 1 Learn | done (2026-11-27) | `docs/context_note.md` (fresh read: 1 error, fixed; acceptance read: 0 content errors); exit checks: guide check and self-test pass, check_quality_plan and `make check-docs` pass, rule audit of 45 boxes (`rule_audit.py` 100 of 100 checks), errata trend recorded; three weighted acceptance samples (1, 3, 1 content errors, all fixed); closed on measured error rates with the study guide frozen (D-022) |
+| 2 Requirements | in progress (entry) | Input: `docs/uart_spec_seed.md`, `docs/context_note.md`; entry: the revisit list, the check_docs basis rule (D-021) and the guide-freeze rule in the private guide_check.py (D-022) |
 | 3 Architecture | not started | |
 | 4 Verification plan | not started | |
 | 5 Stage 1 RTL | not started | |
@@ -167,13 +167,13 @@ See `docs/decisions.md` (D-001 to D-022).
       2026-11-24 by a cycle model of the proposed receiver, Gate 1 checkpoint)
 - [x] Basis of every requirement and evidence of every behaviour — D-021, 2026-11-25 (study material is
       overview only; enforced gate by gate from Gate 2)
-- [x] Gate 1 closed on a measured error rate; study guide frozen, later changes are errata or evidence links — D-022, 2026-11-27
+- [x] Gate 1 closed on measured error rates; study guide frozen, later changes are errata or evidence links — D-022, 2026-11-27
 - [ ] CDC sign-off has no free tool: written review plus a structural script (decide the script's
       scope with the Phase 3 clocking decision)
 
 ## Next step
 
-Gate 2 entry (REQUIREMENTS): the Gate 2 revisit list first; then the check_docs rules of D-021 (a requirement
-without a basis is refused, shown failing on a planted fixture) and D-022 (a guide line changed after the freeze is an
-erratum row or cites evidence); then the owner resolves the seed open decisions that affect external behaviour and
+Gate 2 entry (REQUIREMENTS): the Gate 2 revisit list first; then the check_docs rule of D-021 (a requirement
+without a basis is refused, shown failing on a planted fixture) and the private guide_check.py rule of D-022 (a guide
+line changed after the freeze is an erratum row or cites evidence); then the owner resolves the seed open decisions that affect external behaviour and
 `docs/spec.md` is written with REQ-* IDs, each with a "how would you verify it?" question.
