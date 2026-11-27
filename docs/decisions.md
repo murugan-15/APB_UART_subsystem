@@ -497,3 +497,70 @@ Reason:        The Gate 5 directed test against the RTL is the oracle; a second 
 Impact:        PLANS.md (private) row "2-3"; the Gate 3 receiver model; the private session state.
 Decided by:    me
 Supersedes:    D-021 in part: its double modelling at Gates 2-3 only; every other part of D-021 stands.
+
+### D-025 — A write to TXDATA when the TX FIFO is full is dropped and flagged (seed decision 3)
+Date:          2026-11-27
+Phase:         2
+Decision:      A TXDATA write that finds the TX FIFO full completes with no wait state and no
+               PSLVERR, does not change the FIFO, and sets TX_OVF (D-019).
+Alternatives:  Stall with PREADY low until a slot frees (holds the APB for up to one character,
+               about 87 us at 115200 8N1 and 1.26 ms at 9600 8E2 at PCLK 50 MHz by
+               scripts/apb_stall_numbers.py, and
+               deadlocks with TX disabled); PSLVERR with the byte dropped (flow control becomes bus
+               faults, R4 §3.4.3); drop silently with no record, as R21 §18.4 does.
+Reason:        One defined outcome per case, checkable by a test and an assertion; the system bus is
+               never held by the line rate; the loss is visible to software through TX_OVF.
+Impact:        D-019 now applies unconditionally; docs/spec.md REQ-IF and REQ-ERR rows; datasheet
+               driver contract (check the TX-full status bit before writing).
+Decided by:    me
+Supersedes:    none
+
+### D-026 — A read of RXDATA when the RX FIFO is empty returns 0 and does not pop (seed decision 4)
+Date:          2026-11-27
+Phase:         2
+Decision:      A RXDATA read that finds the RX FIFO empty completes with no wait state and no
+               PSLVERR, returns 0 on PRDATA, and does not move the read pointer (pop is the RXDATA
+               read gated by not empty).
+Alternatives:  Return the last value (leaks the storage read mode); PSLVERR (R4 §3.4: the
+               requester may still use PRDATA, and a normal poll race becomes a bus fault); a valid
+               flag in the RXDATA word, as R21 §18.5 does (self-describing read, one more bit and a
+               change to the seed map).
+Reason:        Defined value and no state change, both testable; the driver contract (read the RX
+               empty status bit or use the RX interrupt before RXDATA) is stated in the datasheet,
+               since a returned 0 alone does not say whether a byte was received.
+Impact:        docs/spec.md REQ-IF and REQ-ERR rows; datasheet driver contract; Gate 3 read path.
+Decided by:    me
+Supersedes:    none
+
+### D-027 — An unmapped access, or a write to a read-only register, gets PSLVERR with no side effect (seed decision 7)
+Date:          2026-11-27
+Phase:         2
+Decision:      The whole address window of the block is fully decoded. A read or write of an offset
+               with no register, and a write to a read-only register, completes with PSLVERR, PRDATA
+               0 on a read, and changes no register, FIFO or flag. The window width is a parameter
+               fixed at Gate 3.
+Alternatives:  Read as zero and write ignored with no error (aliasing and driver bugs stay hidden);
+               leave such accesses unpredictable, as R3 §3.1 does (no test can check it); error only
+               within the decoded address bits and alias beyond them, as R22 describes (a stray
+               access beyond the bits can pop RXDATA).
+Reason:        Every offset in the window has one defined, testable response; PSLVERR support is
+               the completer's choice (R4 §3.4), and since R4 §3.4 lets an errored transfer have
+               changed state, our rule that nothing changes is stated and asserted.
+Impact:        docs/spec.md REQ-IF and REQ-ERR rows; address decode at Gate 3; a window-sweep test.
+Decided by:    me
+Supersedes:    none
+
+### D-028 — The APB slave never inserts wait states (seed decision 9)
+Date:          2026-11-27
+Phase:         2
+Decision:      PREADY is high in every Access cycle: every transfer completes in two cycles.
+Alternatives:  Wait states for a bounded internal reason such as a synchronous-RAM read (frees the
+               storage choice, one cycle more per such read); wait states for line-bound reasons
+               (the stall rejected in D-025).
+Reason:        R4 §3.1.2 allows a fixed two-cycle completer to tie PREADY high; with D-025 and
+               D-026 no transfer needs time; one fixed timing rule is simple to test and assert and
+               cannot hang the bus.
+Impact:        The RX FIFO head must be valid in the Access cycle: Gate 3 shows this with its cycle
+               model (D-024) before seed decision 2 (storage) is taken; docs/spec.md REQ-IF rows.
+Decided by:    me
+Supersedes:    none
