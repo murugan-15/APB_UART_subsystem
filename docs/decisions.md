@@ -393,3 +393,30 @@ Impact:        PLANS.md (private) phase criteria; docs/spec.md format at Gate 2;
                gains a rule at Gate 2; verification plan (Gate 4) lists the independent oracle.
 Decided by:    me
 Supersedes:    none
+
+### D-022 — Gate 1 closed on a measured error rate; the study guide frozen and backed by evidence
+Date:          2026-11-27
+Phase:         1 (Gate 1 exit; applies from Gate 2)
+Decision:      Gate 1 closes with the study guide, cards and Doubts notes frozen at the state of the
+               third weighted acceptance sample and its fixes. That sample (150 of 943 items changed
+               since the 2026-11-16 sample, hardware-behaviour claims weighted 3 to 1) found 1 content
+               error, fixed; the measured rate is 0.67 %, one-sided 95 % upper bound 3.1 % (about 6
+               items expected among the 943, at most 29), computed by script. Frozen means no new
+               teaching text: from Gate 2 a change to the guide is either an erratum fix (AGENTS.md §5
+               procedure: erratum row, rule, rebuild) or a claim upgraded with evidence, a reference to
+               the test, assertion, formal job or board report on the pinned tools that shows it, added
+               when that evidence exists. Errors found later are fixed as errata when found.
+Alternatives:  Draw further samples until one reads 0 content errors (costly, and a clean draw of 150
+               is partly luck: at the measured rate about 37 % of samples read 0); a full line-by-line
+               read of the guide (the cost of a release, not of a gate); full sampling of hardware
+               claims only, each checked against a model before writing.
+Reason:        Three weighted samples (1, 3 and 1 content errors) and the reads of each fix show that
+               prose about hardware behaviour carries condition and scope errors that no script can
+               run; arithmetic is already script-checked. D-021 makes the guide an overview, never the
+               basis of a requirement; executable evidence from Gate 5 on is the oracle that prose
+               lacks, so the guide converges by being linked to it rather than by more reading.
+Impact:        PLANS.md (private) Gate 1 exit row; the guide's front matter states the freeze and the
+               measured rate; the Gate 2 entry check_docs work (D-021) gains a guide rule: a guide line
+               changed after the freeze is an erratum row or cites evidence.
+Decided by:    me
+Supersedes:    none
