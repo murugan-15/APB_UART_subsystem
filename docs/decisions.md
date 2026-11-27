@@ -435,3 +435,26 @@ Impact:        PLANS.md (private) Gate 1 exit row and the general exit list; QC-
 Decided by:    me
 Supersedes:    D-015 in part: its 0-error acceptance sample, for the Gate 1 study material only. The
                rule stands for every later gate and every other document (spec, plans, reports).
+
+### D-023 — Layout of the requirements specification (docs/spec.md)
+Date:          2026-11-27
+Phase:         2 (Gate 2 entry)
+Decision:      docs/spec.md lists every requirement as a table row with the columns ID
+               (REQ-<AREA>-NNN, unique), Requirement (one testable statement with exactly one
+               "shall" and no vague word: should, may, TBD, TBC, etc., and/or, as appropriate), Basis
+               ([Rn §x], D-NNN or "seed: <item>", never the study material, D-021), Stage (v0.1, v0.5 or
+               v1.0, D-003), Verify method (sim, assertion, formal, board or review) and "How would you
+               verify it?" (the owner's verification intent). It also has an Assumptions section (A-NN
+               rows, each with its impact if wrong) and an Open items section whose rows name who
+               decides and by which gate. `make check-docs` check 8 enforces all of it.
+Alternatives:  ID, Requirement, Basis and Verify only (the first form of check 8: no release stage,
+               no method, so the Gate 4 traceability matrix would have to add both later); a free-text
+               specification with inline IDs (no column a script can check).
+Reason:        The production-level bar (every requirement has an ID, a basis and a trace to a test,
+               an assertion or a formal property; open questions name who decides and by which gate)
+               is met only when each of those is a column a script can check. The stage ties every
+               requirement to the staged release of D-003; the method seeds the Gate 4 plan.
+Impact:        scripts/check_docs.py check 8 (self-test 30 of 30); conventions section 7 (make check-docs);
+               the Gate 2 deliverable.
+Decided by:    me
+Supersedes:    none
