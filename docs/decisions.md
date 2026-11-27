@@ -412,7 +412,9 @@ Decision:      Gate 1 closes with the study guide, cards and Doubts notes frozen
                formal job or board report on the pinned tools that shows it, added when that evidence
                exists. Errors found later are fixed as errata when found. Exception (owner,
                2026-11-27): a new doubt may still get a new Doubts entry, written and read under the
-               rules of AGENTS.md §5.
+               rules of AGENTS.md §5; a doubt that overlaps a frozen entry gets its own short entry
+               that answers only what is new and points to the frozen one (no clubbing into a frozen
+               entry, so nothing is explained twice and the frozen text stays as it is).
 Alternatives:  Draw further samples until one reads 0 content errors (costly, and partly luck: at the
                measured hardware rate about 37 % of draws of this shape find no error among their 132
                hardware items); a full line-by-line read of
@@ -430,8 +432,9 @@ Reason:        Three weighted samples (1, 3 and 1 content errors) and the reads 
 Impact:        PLANS.md (private) Gate 1 exit row and the general exit list; QC-02 (private quality plan);
                the guide's cover states the freeze and its Errata appendix the measured rates; at Gate 2
                entry the private scripts/guide_check.py gains a rule that a guide line changed after
-               the freeze is an erratum row or cites evidence (the project repository's check_docs.py
-               cannot read the private guide).
+               the freeze is an erratum row or cites evidence, and lets a new Doubts entry pass (the
+               owner's exception) (the project repository's check_docs.py cannot read the private
+               guide).
 Decided by:    me
 Supersedes:    D-015 in part: its 0-error acceptance sample, for the Gate 1 study material only. The
                rule stands for every later gate and every other document (spec, plans, reports).
@@ -440,21 +443,37 @@ Supersedes:    D-015 in part: its 0-error acceptance sample, for the Gate 1 stud
 Date:          2026-11-27
 Phase:         2 (Gate 2 entry)
 Decision:      docs/spec.md lists every requirement as a table row with the columns ID
-               (REQ-<AREA>-NNN, unique), Requirement (one testable statement with exactly one
-               "shall" and no vague word: should, may, TBD, TBC, etc., and/or, as appropriate), Basis
-               ([Rn §x], D-NNN or "seed: <item>", never the study material, D-021), Stage (v0.1, v0.5 or
-               v1.0, D-003), Verify method (sim, assertion, formal, board or review) and "How would you
-               verify it?" (the owner's verification intent). It also has an Assumptions section (A-NN
-               rows, each with its impact if wrong) and an Open items section whose rows name who
-               decides and by which gate. `make check-docs` check 8 enforces all of it.
-Alternatives:  ID, Requirement, Basis and Verify only (the first form of check 8: no release stage,
-               no method, so the Gate 4 traceability matrix would have to add both later); a free-text
+               (REQ-<AREA>-NNN, unique, AREA one of FUNC, IF, TIM, RST, ERR, PAR, NF as PLANS.md
+               Phase 2 names them), Requirement (one testable statement with exactly one "shall" and
+               no vague word: should, may, TBD, TBC, etc., and/or, as appropriate), Basis (parts
+               separated by ";", each exactly one [Rn §x], one D-NNN or one "seed: <item>", never
+               the study material, D-021), Stage (v0.1, v0.5 or v1.0, D-003), Verify method (sim,
+               assertion, formal, board or review, with at least one of the first four: review never
+               stands alone, since every requirement traces to a test, an assertion or a formal
+               property) and "How would you verify it?" (the owner's verification intent, never a
+               placeholder). It also has the sections Assumptions (A-NN, each with its impact if
+               wrong), Non-goals (NG-NN, each with its basis), Unsupported behaviour (UB-NN, each
+               with what happens) and Open items (OI-NN: the item, what it affects, who decides and
+               by which gate, 2 to 12), the lists PLANS.md Phase 2 asks for; an empty one says
+               "None.". `make check-docs` check 8 enforces all of it. The owner adopted this layout
+               on 2026-11-27 ("Adopt both", answering the proposal of an ID, Requirement, Basis,
+               Stage, Verify method and "How would you verify it?" table with assumption and
+               open-item sections); the area list, the non-goal and unsupported-behaviour sections
+               and "review never alone" align it with PLANS.md Phase 2 and AGENTS.md §12 (read of
+               the step-0 fixes, fixes6b findings 3 to 5).
+Alternatives:  ID, Requirement, Basis and Verify only (the first form of check 8: no release
+               stage and no method, so the Gate 4 traceability matrix would have to add both); a
+               machine-readable source (YAML or a SystemRDL-like file) that generates spec.md, as
+               D-007 does for registers (one source for the spec and the Gate 4 matrix, but a second
+               format and a generator to maintain before any requirement exists; reconsidered at
+               Gate 4 if the matrix cannot be checked against the Markdown table); a free-text
                specification with inline IDs (no column a script can check).
 Reason:        The production-level bar (every requirement has an ID, a basis and a trace to a test,
                an assertion or a formal property; open questions name who decides and by which gate)
                is met only when each of those is a column a script can check. The stage ties every
                requirement to the staged release of D-003; the method seeds the Gate 4 plan.
-Impact:        scripts/check_docs.py check 8 (self-test 30 of 30); conventions section 7 (make check-docs);
-               the Gate 2 deliverable.
+Impact:        scripts/check_docs.py check 8 (self-test 43 of 43); conventions section 7 (make
+               check-docs); PLANS.md (private) Gate 2 exit row; project_status.md Next step; the
+               private session_state.md handoff; the Gate 2 deliverable.
 Decided by:    me
 Supersedes:    none

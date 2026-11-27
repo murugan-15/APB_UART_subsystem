@@ -135,15 +135,15 @@ def check(t):
     return probs, (len(ids), len(t['probes']), len(rules), base)
 
 
-STUDY = re.compile(r'\b(guide|cards?|doubts?|MCQ|cheat sheet|learning[_ ]log|checkpoint|Set (?:0|L\d|M0|G1|CP))\b', re.I)
+STUDY = re.compile(r'\b(guide|cards?|doubts?|MCQ|cheat sheet|learning[_ ]log|checkpoint|Set (?:0|L\d|M0|G1|CP))\b|uart_(?:guide|cards|doubts)|docs/practice|mcq_', re.I)
 FIXTURE = """# Fixture (check_docs self-test only)
 
 ## Requirements
 
 | ID | Requirement | Basis | Stage | Verify method | How would you verify it? |
 |---|---|---|---|---|---|
-| REQ-BUS-001 | The slave shall complete a transfer in two cycles when PREADY is held high. | [R4 §3.1]; seed: Bus | v0.1 | sim, assertion | directed test: one write, one read, cycle count |
-| REQ-FRM-001 | The transmitter shall send the data bits LSB first. | seed: Frame | v0.1 | sim | line monitor decodes a known byte |
+| REQ-IF-001 | The slave shall complete a transfer in two cycles when PREADY is held high. | [R4 §3.1]; seed: Bus | v0.1 | sim, assertion | directed test: one write, one read, cycle count |
+| REQ-FUNC-001 | The transmitter shall send the data bits LSB first. | seed: Frame | v0.1 | sim | line monitor decodes a known byte |
 | REQ-RST-001 | Reset shall assert asynchronously and release synchronously. | D-001 | v0.1 | formal, review | assertion on the reset synchronizer |
 
 ## Assumptions
@@ -152,27 +152,75 @@ FIXTURE = """# Fixture (check_docs self-test only)
 |---|---|---|
 | A-01 | PCLK runs at 100 MHz on the board. | divisor table changes |
 
+## Non-goals
+
+| ID | Non-goal | Basis |
+|---|---|---|
+| NG-01 | Hardware flow control (RTS/CTS). | seed: non-goals |
+
+## Unsupported behaviour
+
+| ID | Behaviour | What happens |
+|---|---|---|
+| UB-01 | A write with PSTRB other than all ones. | the strobe is ignored |
+
 ## Open items
 
-| ID | Item | Decides | Gate |
-|---|---|---|---|
-| OI-01 | FIFO storage type | owner | 3 |
+| ID | Item | Affects | Decides | Gate |
+|---|---|---|---|---|
+| OI-01 | FIFO storage type | area and the read path | owner | 3 |
 """
+AREAS = {'FUNC', 'IF', 'TIM', 'RST', 'ERR', 'PAR', 'NF'}              # PLANS.md Phase 2
 VAGUE = re.compile(r'\b(?:should|may|TBD|TBC|etc|and/or|as appropriate)\b', re.I)
+PLACEHOLDER = re.compile(r'^(?:|TBD|TBC|-|—|–|n/?a|none|\?+)$', re.I)
 STAGES = {'v0.1', 'v0.5', 'v1.0'}
 METHODS = {'sim', 'assertion', 'formal', 'board', 'review'}
+RUN = {'sim', 'assertion', 'formal', 'board'}                        # a test, an assertion or a formal property (AGENTS.md §12)
 COLS = ('id', 'requirement', 'basis', 'stage', 'verify method', 'how would you verify it?')
+SECTIONS = (                                                          # (heading, ID form, required columns)
+    ('Assumptions', r'A-\d{2}', ('id', 'assumption', 'impact if wrong')),
+    ('Non-goals', r'NG-\d{2}', ('id', 'non-goal', 'basis')),
+    ('Unsupported behaviour', r'UB-\d{2}', ('id', 'behaviour', 'what happens')),
+    ('Open items', r'OI-\d{2}', ('id', 'item', 'affects', 'decides', 'gate')),
+)
 
 
 def tables(text):
     for block in re.findall(r'^(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)*)', text, re.M):
         rows = [[c.strip() for c in r.strip().strip('|').split('|')] for r in block.strip().splitlines()]
-        yield [h.lower() for h in rows[0]], rows[2:]
+        yield [h.lower() for h in rows[0]], [r + [''] * (len(rows[0]) - len(r)) for r in rows[2:]]
 
 
 def section(text, name):
-    m = re.search(rf'^## {name}\b.*?(?=^## |\Z)', text, re.M | re.S)
-    return m.group() if m else None
+    m = re.search(rf'^## {name}\s*\n(.*?)(?=^## |\Z)', text, re.M | re.S)
+    return m.group(1) if m else None
+
+
+def basis_problems(rid, basis, ids, refs, items):
+    """Each ';'-separated part of a Basis is exactly one [Rn §x], one D-NNN or one "seed: <item>"."""
+    probs = []
+    parts = [x.strip() for x in basis.split(';') if x.strip()]
+    if not parts:
+        probs.append(f'8 spec.md: {rid}: the Basis names no [Rn §x], D-NNN or "seed: <item>"')
+    for part in parts:
+        m_r = re.fullmatch(r'\[(R\d+) §[^\];,\[]+\]', part)
+        m_d = re.fullmatch(r'D-\d{3}', part)
+        m_s = re.fullmatch(r'seed: (.+)', part)
+        if m_r:
+            if m_r.group(1) not in refs:
+                probs.append(f'8 spec.md: {rid}: the Basis cites {m_r.group(1)}, which is in no reference list')
+        elif m_d:
+            if part not in ids:
+                probs.append(f'8 spec.md: {rid}: the Basis cites {part}, which is not in decisions.md')
+        elif m_s:
+            if m_s.group(1).strip().lower() not in items:
+                probs.append(f'8 spec.md: {rid}: the Basis cites "seed: {m_s.group(1).strip()}", which is no seed area, register or "non-goals"')
+        else:
+            probs.append(f'8 spec.md: {rid}: the Basis part "{part}" is not one [Rn §x], one D-NNN or one "seed: <item>"')
+    m = STUDY.search(basis)
+    if m:
+        probs.append(f'8 spec.md: {rid}: the Basis names the study material ("{m.group()}"; D-021)')
+    return probs
 
 
 def check_spec(t, ids):
@@ -182,9 +230,9 @@ def check_spec(t, ids):
     seed_map = t['seed'].split('## Draft register map')[1].split('\n## ')[0]
     items = {c.strip().lower() for c in re.findall(r'^\| ([^|]+?) \|', seed_feat, re.M)} - {'area', '---'}
     items |= {c.strip().lower() for c in re.findall(r'^\| 0x[0-9A-F]+ \| (\w+) \|', seed_map, re.M)}
+    items.add('non-goals')
     for head, body in tables(t['spec']):
-        body = [r for r in body if r and r[0].startswith('REQ-')]
-        if not body:
+        if 'requirement' not in head and not any(r[0].startswith('REQ') for r in body):
             continue
         missing = [c for c in COLS if c not in head]
         if missing:
@@ -192,10 +240,11 @@ def check_spec(t, ids):
             continue
         col = {c: head.index(c) for c in COLS}
         for r in body:
-            cell = {c: (r[i] if i < len(r) else '') for c, i in col.items()}
-            rid, req, basis = cell['id'], cell['requirement'], cell['basis']
-            if not re.fullmatch(r'REQ-[A-Z]+-\d{3}', rid):
-                probs.append(f'8 spec.md: {rid}: the ID is not REQ-<AREA>-NNN')
+            cell = {c: r[i] for c, i in col.items()}
+            rid, req = cell['id'], cell['requirement']
+            m = re.fullmatch(r'REQ-([A-Z]+)-\d{3}', rid)
+            if not m or m.group(1) not in AREAS:
+                probs.append(f'8 spec.md: {rid}: the ID is not REQ-<AREA>-NNN with an area of PLANS.md Phase 2 ({", ".join(sorted(AREAS))})')
             if rid in seen:
                 probs.append(f'8 spec.md: {rid}: the ID is used twice')
             seen.add(rid)
@@ -205,52 +254,46 @@ def check_spec(t, ids):
             m = VAGUE.search(req)
             if m:
                 probs.append(f'8 spec.md: {rid}: the Requirement uses the vague word "{m.group()}"')
-            cites = re.findall(r'\[(R\d+) §[^\]]+\]', basis)
-            decs = re.findall(r'\bD-\d{3}\b', basis)
-            seeds = [x.strip().lower() for x in re.findall(r'seed: ([^;,\]]+)', basis)]
-            if not (cites or decs or seeds):
-                probs.append(f'8 spec.md: {rid}: the Basis names no [Rn §x], D-NNN or "seed: <item>"')
-            for c in cites:
-                if c not in refs:
-                    probs.append(f'8 spec.md: {rid}: the Basis cites {c}, which is in no reference list')
-            for d in decs:
-                if d not in ids:
-                    probs.append(f'8 spec.md: {rid}: the Basis cites {d}, which is not in decisions.md')
-            for x in seeds:
-                if x not in items:
-                    probs.append(f'8 spec.md: {rid}: the Basis cites "seed: {x}", which is no seed area or register')
-            m = STUDY.search(basis)
-            if m:
-                probs.append(f'8 spec.md: {rid}: the Basis names the study material ("{m.group()}"; D-021)')
+            probs += basis_problems(rid, cell['basis'], ids, refs, items)
             if cell['stage'] not in STAGES:
                 probs.append(f'8 spec.md: {rid}: the Stage "{cell["stage"]}" is not v0.1, v0.5 or v1.0 (D-003)')
             meths = [x.strip() for x in cell['verify method'].split(',') if x.strip()]
             if not meths or any(x not in METHODS for x in meths):
                 probs.append(f'8 spec.md: {rid}: the Verify method "{cell["verify method"]}" is not a list of {", ".join(sorted(METHODS))}')
-            if not cell['how would you verify it?']:
-                probs.append(f'8 spec.md: {rid}: the "How would you verify it?" cell is empty')
+            elif not RUN & set(meths):
+                probs.append(f'8 spec.md: {rid}: the Verify method has no sim, assertion, formal or board (review never stands alone)')
+            if PLACEHOLDER.match(cell['how would you verify it?']):
+                probs.append(f'8 spec.md: {rid}: the "How would you verify it?" cell is empty or a placeholder')
     if not seen:
         probs.append('8 spec.md: no requirement row (an ID cell REQ-<AREA>-NNN in a table with the D-023 columns)')
-    sec = section(t['spec'], 'Assumptions')
-    if sec is None:
-        probs.append('8 spec.md: no "## Assumptions" section')
-    else:
-        aids = re.findall(r'^\| (A-\d{2}) \|', sec, re.M)
-        if len(aids) != len(set(aids)):
-            probs.append('8 spec.md: an assumption ID is used twice')
-    sec = section(t['spec'], 'Open items')
-    if sec is None:
-        probs.append('8 spec.md: no "## Open items" section')
-    else:
-        for head, body in tables(sec):
-            if 'decides' not in head or 'gate' not in head:
-                probs.append('8 spec.md: the Open items table lacks a Decides or a Gate column')
+    for name, form, cols in SECTIONS:
+        sec = section(t['spec'], name)
+        if sec is None:
+            probs.append(f'8 spec.md: no "## {name}" section')
+            continue
+        tabs = list(tables(sec))
+        if not tabs and sec.strip().lower() != 'none.':
+            probs.append(f'8 spec.md: "{name}" has no table (write "None." if it is empty)')
+        for head, body in tabs:
+            missing = [c for c in cols if c not in head]
+            if missing:
+                probs.append(f'8 spec.md: the {name} table lacks the column(s) {", ".join(missing)}')
                 continue
+            sids = []
             for r in body:
-                d = r[head.index('decides')] if head.index('decides') < len(r) else ''
-                g = r[head.index('gate')] if head.index('gate') < len(r) else ''
-                if not d or not re.fullmatch(r'\d+', g):
-                    probs.append(f'8 spec.md: open item {r[0]}: it does not name who decides and by which gate')
+                sid = r[head.index('id')]
+                sids.append(sid)
+                if not re.fullmatch(form, sid):
+                    probs.append(f'8 spec.md: {name} row "{sid}": the ID is not of the form {form}')
+                for c in cols[1:]:
+                    if PLACEHOLDER.match(r[head.index(c)]):
+                        probs.append(f'8 spec.md: {name} {sid}: the {c} cell is empty or a placeholder')
+                if name == 'Open items' and not re.fullmatch(r'[2-9]|1[0-2]', r[head.index('gate')]):
+                    probs.append(f'8 spec.md: open item {sid}: the gate "{r[head.index("gate")]}" is not a gate from 2 to 12')
+                if name == 'Non-goals':
+                    probs += basis_problems(sid, r[head.index('basis')], ids, refs, items)
+            if len(sids) != len(set(sids)):
+                probs.append(f'8 spec.md: an ID of {name} is used twice')
     return probs
 
 
@@ -276,26 +319,39 @@ def mutations(t):
         ('a stale number of svlint rules', 'conv', 'each of its ', 'each of its 99 rules, not ', '6'),
         ('a requirement with an empty basis', 'spec', '| seed: Frame |', '|  |', '8'),
         ('a requirement based on the study guide', 'spec', '| D-001 |', '| D-001; guide Set L4 |', '8'),
+        ('a requirement based on a study file by name', 'spec', '| D-001 |', '| D-001; docs/practice/uart_guide.md |', '8'),
         ('a requirement citing a decision that does not exist', 'spec', '| D-001 |', '| D-999 |', '8'),
         ('a requirement citing a reference in no list', 'spec', '[R4 §3.1]', '[R99 §3.1]', '8'),
+        ('a requirement citing a reference with no section', 'spec', '[R4 §3.1]', '[R4]', '8'),
+        ('a requirement citing a second, unchecked seed item', 'spec', 'seed: Frame |', 'seed: Frame, Framing |', '8'),
         ('a requirement citing no seed item', 'spec', 'seed: Frame', 'seed: Framing', '8'),
-        ('a requirement ID used twice', 'spec', 'REQ-FRM-001', 'REQ-BUS-001', '8'),
+        ('a requirement ID used twice', 'spec', 'REQ-FUNC-001', 'REQ-IF-001', '8'),
+        ('a requirement ID mistyped', 'spec', 'REQ-FUNC-001', 'REG-FUNC-001', '8'),
+        ('a requirement ID with an area PLANS.md does not name', 'spec', 'REQ-FUNC-001', 'REQ-FRM-001', '8'),
         ('a requirement with no verify question', 'spec', '| line monitor decodes a known byte |', '|  |', '8'),
-        ('a requirement table without a Basis column', 'spec', '| Basis |', '| Source |', '8'),
+        ('a requirement with a placeholder verify question', 'spec', '| line monitor decodes a known byte |', '| TBD |', '8'),
+        ('a requirement table without a Basis column', 'spec', '| Basis | Stage', '| Source | Stage', '8'),
         ('a requirement without "shall"', 'spec', 'The transmitter shall send', 'The transmitter sends', '8'),
         ('a requirement with two "shall"', 'spec', 'LSB first.', 'LSB first and shall stop.', '8'),
         ('a requirement with a vague word', 'spec', 'when PREADY is held high', 'when PREADY may be held high', '8'),
         ('a requirement with no release stage', 'spec', '| seed: Frame | v0.1 |', '| seed: Frame | soon |', '8'),
         ('a requirement with an unknown verify method', 'spec', '| v0.1 | sim |', '| v0.1 | testing |', '8'),
+        ('a requirement verified by review alone', 'spec', '| formal, review |', '| review |', '8'),
         ('a spec without an Assumptions section', 'spec', '## Assumptions', '## Notes', '8'),
-        ('an open item that names no gate', 'spec', '| owner | 3 |', '| owner | later |', '8'),
+        ('an assumption with no impact', 'spec', '| divisor table changes |', '|  |', '8'),
+        ('an assumption ID not of the form A-NN', 'spec', '| A-01 |', '| A1 |', '8'),
+        ('a spec without a Non-goals section', 'spec', '## Non-goals', '## Later', '8'),
+        ('a spec without an Unsupported behaviour section', 'spec', '## Unsupported behaviour', '## Other', '8'),
+        ('an Open items section with no table', 'spec', '| ID | Item | Affects | Decides | Gate |\n|---|---|---|---|---|\n', '', '8'),
+        ('an open item decided by nobody', 'spec', '| owner | 3 |', '| TBD | 3 |', '8'),
+        ('an open item at a gate that does not exist', 'spec', '| owner | 3 |', '| owner | 99 |', '8'),
     ]
 
 
 def selftest():
     t0, fails = load(), 0
-    if t0['spec'] is None:                    # before spec.md exists: run check 8 on the fixture
-        t0['spec'] = FIXTURE
+    t0['spec'] = FIXTURE                      # the self-test tests the checker: check 8 always runs on the fixture,
+    #                                           never on the real spec.md (read of the step-0 fixes, fixes6b finding 1)
     clean, _ = check(t0)
     for name, key, old, new, kind in mutations(t0):
         t = dict(t0)
