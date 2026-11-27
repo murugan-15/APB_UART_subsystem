@@ -79,7 +79,7 @@ comparison point, and binds our design only if Gate 2 or Gate 3 chooses the same
 | F-15 | The FT2232H baud rate generator gives the UART an x16 or x10 clock from a 120 MHz reference, through a 14-bit prescaler and 4 bits of fraction; its UART runs from 183 baud to 12 Mbaud, except 7, 9, 10 and 11 Mbaud. | [R16 §4.2] |
 | F-16 | For the FT232R, FT2232 (UART mode) and FT232B, FTDI states that a link should work without errors as long as the actual baud rate is within ±3 % of the required one, and its driver uses the closest divisor within that margin. | [R15, Baud Rate Calculation, p. 4] |
 | F-17 | The coverage of a covergroup is the weighted average of the coverage of its items (coverpoints and crosses). | [R19 §19.11] |
-| F-18 | A variable assigned in an `always_comb` procedure shall not be assigned by any other process. | [R19 §9.2.2.2] |
+| F-18 | A variable assigned in an `always_comb` procedure shall not be assigned by any other process; assignments to independent elements of a variable are allowed as long as their longest static prefixes do not overlap. | [R19 §9.2.2.2] |
 
 F-16 is stated for FTDI's older devices; R16 points to R15 for the FT2232H's details, so the far end's
 actual error at each rate the spec promises is computed by script at Gate 2 (O-11). On the board, F-14 makes the FT2232HQ the far end. On any asynchronous link (F-12) no clock
@@ -135,8 +135,8 @@ three error kinds, the status and interrupt sets, the draft register map, and th
 non-goals (among them 5 to 7 data bits), and the optional v1.0 items (an async FIFO, loopback mode).
 Gate 2 accepts, changes or rejects each item that software, the bus or the far end would see, and
 records the basis of the requirement that results (D-021); the microarchitectural items (synchronizer
-depth, FIFO storage, the final register layout) are settled at Gate 3 (O-02, O-15; the register layout from the seed's draft map,
-which it marks for Phase 3), and the async FIFO at Gate 3 with the v0.1 clock stated at Gate 2 (O-10).
+depth, FIFO storage) are settled at Gate 3 (O-02, O-15), the final register layout at Gate 3 with the fields software sees
+stated at Gate 2 (O-19; the seed's draft map marks it for Phase 3), and the async FIFO at Gate 3 with the v0.1 clock stated at Gate 2 (O-10).
 
 ### 5.2 Model claims (become evidence only as RTL tests, Gate 5 on)
 
@@ -152,7 +152,7 @@ receiver Gate 3 chooses (O-11).
 
 All of them are the owner's to decide. The gate follows one test: if software, the APB bus or the
 far end on the line would see the difference, the requirement comes first (Gate 2); if only the
-microarchitecture, area or verification changes, it belongs to Gate 3. Two items recorded for Phase 3
+microarchitecture, area or verification changes, it belongs to Gate 3. Three items recorded for Phase 3
 have an external face, so Gate 2 states the requirement and Gate 3 the design.
 
 | # | Question | Gate | Who would see it | Blocks |
@@ -175,6 +175,7 @@ have an external face, so Gate 2 states the requirement and Gate 3 the design.
 | O-16 | How coverage is reported: the standard defines a covergroup's coverage as the weighted average over its items (F-17), while Verilator's `get_inst_coverage()` gave bins hit over all bins in probe p26 (conventions §2.1) | before Gate 4 names a coverage target | nobody outside | coverage targets in the verification plan |
 | O-17 | A soft CPU running the C driver on the board | after v1.0 | nobody outside | — |
 | O-18 | Source of the RX interrupt: RX not empty or an RX threshold (the seed leaves both) | 2 | software: when it reads RXDATA | INT_STATUS and INT_EN maps; a threshold field in CTRL |
+| O-19 | Final register layout: offsets and bit positions (the seed's draft map, to be finalized in Phase 3) | 3, with the fields software sees stated at Gate 2 | software: every offset and bit position | the SystemRDL source (D-007), the C header and the register block |
 
 ## 7. Learning checklist
 

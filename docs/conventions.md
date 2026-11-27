@@ -102,7 +102,7 @@ installed there, and must fail with a clear message if the environment is missin
 | A `uvm_error` → nonzero exit | ❌ exits 0; the report counts show it | — | — | p15 |
 | Packed struct (package typedef) on a module port | ✅ | ✅ | ✅ synth | p16 |
 | Named assignment pattern `'{member: value}` | ✅ | ❌ syntax error | ❌ syntax error | p16 |
-| A variable written by `always_comb` and by a second process (illegal: IEEE 1800-2023 §9.2.2.2 says a variable assigned in `always_comb` shall not be assigned by any other process; read 2026-11-26, R19 in `docs/context_note.md`) | ✅ rejected, MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it, but only with its analysis pass) |
+| A variable written by `always_comb` and by a second process (illegal: IEEE 1800-2023 §9.2.2.2 says a variable assigned in `always_comb` shall not be assigned by any other process, except independent elements whose longest static prefixes do not overlap; read 2026-11-26, R19 in `docs/context_note.md`) | ✅ rejected, MULTIDRIVEN | ❌ accepted silently | — | p22 (slang rejects it, but only with its analysis pass) |
 | Initializer on a variable declared in a procedural block (static: set once) | ✅ rejected, IMPLICITSTATIC | — | — | p24 |
 | Implicit width extension | ✅ rejected, WIDTHEXPAND | — | — | p24 |
 | Declaration initializer on a variable a process also assigns | accepted by default; rejected under `-Wall` (PROCASSINIT) | — | — | p24 |

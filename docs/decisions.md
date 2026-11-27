@@ -357,8 +357,8 @@ Decision:      tx_done is set when the last stop bit has left the shift register
 Alternatives:  Set when the last byte leaves the FIFO; two separate bits for the two moments.
 Reason:        That is the moment software needs: to release an RS-485 driver (E-058), change the
                baud rate or power down. FIFO empty is already covered by the TX level interrupt.
-Impact:        The Doubts entry on what tx_done means, and its follow-up; exhibit D27 (it sets the bit on the last FIFO
-               pop today); MCQ items on tx_done.
+Impact:        The Doubts entry on what tx_done means, and its follow-up; exhibit D27 (it set the bit on the last FIFO
+               pop until it was brought to this rule the same day); MCQ items on tx_done.
 Decided by:    me
 Supersedes:    none
 
