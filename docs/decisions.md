@@ -394,23 +394,26 @@ Impact:        PLANS.md (private) phase criteria; docs/spec.md format at Gate 2;
 Decided by:    me
 Supersedes:    none
 
-### D-022 — Gate 1 closed on a measured error rate; the study guide frozen and backed by evidence
+### D-022 — Gate 1 closed on measured error rates; the study guide frozen and backed by evidence
 Date:          2026-11-27
 Phase:         1 (Gate 1 exit; applies from Gate 2)
 Decision:      Gate 1 closes with the study guide, cards and Doubts notes frozen at the state of the
                third weighted acceptance sample and its fixes, instead of the 0-error sample of D-015.
                That sample (seed 907428, 150 of the 943 items changed since the 2026-11-16 sample,
-               hardware-behaviour claims weighted 3 to 1) found 1 content error, fixed (E-126). Since
-               the sample is weighted, each group is bounded on its own (one-sided 95 %, scripts/
-               gate1_bound.py in the private repository): hardware-behaviour claims 1 of 132 drawn,
-               bound 3.5 % (about 5 of 696 expected wrong, at most 25); other items 0 of 18 drawn,
-               bound 15.3 % (at most 38 of 247). Frozen means no new teaching text: from Gate 2 a
+               items the sampler marks as hardware-behaviour claims, a keyword match in
+               scripts/acceptance_sample.py, weighted 3 to 1) found 1 content error, fixed (E-126).
+               Since the sample is weighted, each group is bounded on its own (one-sided 95 %, scripts/
+               gate1_bound.py in the private repository, which reads the counts from the sample files):
+               hardware-behaviour items 1 of 132 drawn, bound 3.5 % (as sampled, about 5 of 696
+               expected wrong, at most 25; after the fix, about 4 of the 564 unread, at most 20);
+               other items 0 of 18 drawn, bound 15.3 % (at most 38 of 247). Frozen means no new teaching text: from Gate 2 a
                change to the guide is either an erratum fix (AGENTS.md §5 procedure: erratum row,
                rule, rebuild) or a claim upgraded with evidence, a reference to the test, assertion,
                formal job or board report on the pinned tools that shows it, added when that evidence
                exists. Errors found later are fixed as errata when found.
 Alternatives:  Draw further samples until one reads 0 content errors (costly, and partly luck: at the
-               measured hardware rate about 32 % of samples of 150 read 0); a full line-by-line read of
+               measured hardware rate about 37 % of draws of this shape find no error among their 132
+               hardware items); a full line-by-line read of
                the guide (the cost of a release, not of a gate); full sampling of hardware claims only,
                each checked against a model before writing.
 Reason:        Three weighted samples (1, 3 and 1 content errors) and the reads of each fix show that
@@ -418,8 +421,10 @@ Reason:        Three weighted samples (1, 3 and 1 content errors) and the reads 
                run; arithmetic is already script-checked. D-021 makes the guide an overview, never the
                basis of a requirement; executable evidence from Gate 5 on is the oracle that prose
                lacks, so the guide converges by being linked to it rather than by more reading. This is
-               a relaxation for the Gate 1 study material: D-015's 0-error sample bounds the rate below
-               2.0 %, and the bounds above are wider, the owner's choice.
+               a relaxation for the Gate 1 study material, the owner's choice: a 0-error draw of this
+               weighted shape would have bounded hardware-behaviour items at 2.2 % (D-015's 2.0 % is the
+               figure of a uniform sample of 150); the relaxation widens that bound to 3.5 %. The 15.3 %
+               for other items is set by the weighting (18 drawn), error or not.
 Impact:        PLANS.md (private) Gate 1 exit row and the general exit list; QC-02 (private quality plan);
                the guide's cover states the freeze and its Errata appendix the measured rates; at Gate 2
                entry the private scripts/guide_check.py gains a rule that a guide line changed after

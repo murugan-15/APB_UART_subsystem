@@ -122,6 +122,7 @@ D-019 together with O-03.
 | D-015 | Quality rules for every artifact; light CI now | add one check per error after it is found |
 | D-016 | Verilator PROCASSINIT on for RTL, waived for testbenches | waive it everywhere |
 | D-021 | Every requirement names its basis; behaviour is established by evidence on the pinned tools | treat the study material as the reference design |
+| D-022 | Gate 1 closed on measured error rates; the study guide frozen, later changes errata or evidence links | draw samples until one reads 0 content errors |
 
 ## 5. Seed proposals and model claims
 
