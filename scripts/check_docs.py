@@ -16,6 +16,12 @@ Checks (each prints one line per problem; exit 1 if any):
      and conventions the number of rules in .svlint.toml
   7. no comment in a SystemVerilog or .vlt file starts with the word "verilator" unless it is a
      pragma: Verilator reads such a comment as one and stops (conventions section 2.4)
+  8. docs/spec.md (D-021): every requirement is a table row whose ID cell is REQ-<AREA>-NNN, unique, in a
+     table with ID, Basis and Verify columns; its Basis names at least one of [Rn §x] (Rn in the references
+     of context_note.md or spec.md), D-NNN (in decisions.md) or "seed: <item>" (a feature-table area or a
+     draft register of uart_spec_seed.md), every reference it names exists, and it never names the study
+     material (guide, cards, Doubts, MCQ, a study Set); its Verify cell ("how would you verify it?") is not
+     empty. Before spec.md exists the self-test runs the check on a built-in fixture.
 Not checked (read these by eye): a second, stale quote beside a correct one; whether a cited probe
 tests the claim that cites it; tool versions in section 1.1; numbers a probe asserts (38 of 40).
 
@@ -36,8 +42,11 @@ FIELDS = ('Date:', 'Phase:', 'Decision:', 'Alternatives:', 'Reason:', 'Impact:',
 def load():
     names = {'dec': 'docs/decisions.md', 'conv': 'docs/conventions.md', 'st': 'docs/project_status.md',
              'bug': 'docs/bug_log.md', 'readme': 'tb/probes/README.md', 'sh': 'scripts/probe.sh',
-             'exp': 'tb/probes/expected.txt', 'mk': 'Makefile', 'top': 'README.md', 'sv': '.svlint.toml'}
+             'exp': 'tb/probes/expected.txt', 'mk': 'Makefile', 'top': 'README.md', 'sv': '.svlint.toml',
+             'seed': 'docs/uart_spec_seed.md', 'ctx': 'docs/context_note.md'}
     t = {k: (ROOT / v).read_text(encoding='utf-8') for k, v in names.items()}
+    spec = ROOT / 'docs/spec.md'
+    t['spec'] = spec.read_text(encoding='utf-8') if spec.exists() else None
     t['probes'] = sorted(d.name for d in (ROOT / 'tb/probes').glob('p[0-9][0-9]_*'))
     t['hdl'] = {str(f.relative_to(ROOT)): f.read_text(encoding='utf-8', errors='replace')
                 for d in ('rtl', 'tb', 'formal', 'assertions') for f in sorted((ROOT / d).rglob('*'))
@@ -117,7 +126,71 @@ def check(t):
     for n in re.findall(r'each of its (\d+) rules', t['conv']):
         if int(n) != n_sv:
             probs.append(f'6 conventions.md: says svlint has {n} rules; .svlint.toml switches on {n_sv}')
+    if t['spec'] is not None:
+        probs += check_spec(t, ids)
     return probs, (len(ids), len(t['probes']), len(rules), base)
+
+
+STUDY = re.compile(r'\b(guide|cards?|doubts?|MCQ|cheat sheet|learning[_ ]log|checkpoint|Set (?:0|L\d|M0|G1|CP))\b', re.I)
+FIXTURE = '''# Fixture (check_docs self-test only)
+
+| ID | Requirement | Basis | Verify |
+|---|---|---|---|
+| REQ-BUS-001 | The slave completes a transfer in two cycles when PREADY is held high. | [R4 §3.1]; seed: Bus | directed test: one write, one read, cycle count |
+| REQ-FRM-001 | A frame is sent LSB first. | seed: Frame | line monitor decodes a known byte |
+| REQ-RST-001 | Reset asserts asynchronously and releases synchronously. | D-001 | assertion on the reset synchronizer |
+'''
+
+
+def check_spec(t, ids):
+    probs, seen = [], set()
+    refs = set(re.findall(r'^\| (R\d+) \|', t['ctx'] + '\n' + t['spec'], re.M))
+    seed_feat = t['seed'].split('## Proposed feature set')[1].split('\n## ')[0]
+    seed_map = t['seed'].split('## Draft register map')[1].split('\n## ')[0]
+    items = {c.strip().lower() for c in re.findall(r'^\| ([^|]+?) \|', seed_feat, re.M)} - {'area', '---'}
+    items |= {c.strip().lower() for c in re.findall(r'^\| 0x[0-9A-F]+ \| (\w+) \|', seed_map, re.M)}
+    for block in re.findall(r'^(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)*)', t['spec'], re.M):
+        rows = [[c.strip() for c in r.strip().strip('|').split('|')] for r in block.strip().splitlines()]
+        head = [h.split(' (')[0].lower() for h in rows[0]]
+        body = [r for r in rows[2:] if r and r[0].startswith('REQ-')]
+        if not body:
+            continue
+        missing = [c for c in ('id', 'basis', 'verify') if c not in head]
+        if missing:
+            probs.append(f'8 spec.md: a requirement table lacks the column(s) {", ".join(missing)}')
+            continue
+        ib, iv = head.index('basis'), head.index('verify')
+        for r in body:
+            rid = r[0]
+            basis = r[ib] if ib < len(r) else ''
+            verify = r[iv] if iv < len(r) else ''
+            if not re.fullmatch(r'REQ-[A-Z]+-\d{3}', rid):
+                probs.append(f'8 spec.md: {rid}: the ID is not REQ-<AREA>-NNN')
+            if rid in seen:
+                probs.append(f'8 spec.md: {rid}: the ID is used twice')
+            seen.add(rid)
+            cites = re.findall(r'\[(R\d+) §[^\]]+\]', basis)
+            decs = re.findall(r'\bD-\d{3}\b', basis)
+            seeds = [x.strip().lower() for x in re.findall(r'seed: ([^;,\]]+)', basis)]
+            if not (cites or decs or seeds):
+                probs.append(f'8 spec.md: {rid}: the Basis names no [Rn §x], D-NNN or "seed: <item>"')
+            for c in cites:
+                if c not in refs:
+                    probs.append(f'8 spec.md: {rid}: the Basis cites {c}, which is in no reference list')
+            for d in decs:
+                if d not in ids:
+                    probs.append(f'8 spec.md: {rid}: the Basis cites {d}, which is not in decisions.md')
+            for x in seeds:
+                if x not in items:
+                    probs.append(f'8 spec.md: {rid}: the Basis cites "seed: {x}", which is no seed area or register')
+            m = STUDY.search(basis)
+            if m:
+                probs.append(f'8 spec.md: {rid}: the Basis names the study material ("{m.group()}"; D-021)')
+            if not verify:
+                probs.append(f'8 spec.md: {rid}: the Verify cell is empty')
+    if not seen:
+        probs.append('8 spec.md: no requirement row (an ID cell REQ-<AREA>-NNN in a table with ID, Basis and Verify)')
+    return probs
 
 
 # one planted error per check: (name, key of the text to change, old, new, the check that must report it)
@@ -140,11 +213,21 @@ def mutations(t):
         ('a stale last decision', 'st', f'(D-001 to {last})', '(D-001 to D-002)', '6'),
         ('a comment that Verilator reads as a pragma', 'hdl', None, None, '7'),
         ('a stale number of svlint rules', 'conv', 'each of its ', 'each of its 99 rules, not ', '6'),
+        ('a requirement with an empty basis', 'spec', '| seed: Frame |', '|  |', '8'),
+        ('a requirement based on the study guide', 'spec', '| D-001 |', '| D-001; guide Set L4 |', '8'),
+        ('a requirement citing a decision that does not exist', 'spec', '| D-001 |', '| D-999 |', '8'),
+        ('a requirement citing a reference in no list', 'spec', '[R4 §3.1]', '[R99 §3.1]', '8'),
+        ('a requirement citing no seed item', 'spec', 'seed: Frame', 'seed: Framing', '8'),
+        ('a requirement ID used twice', 'spec', 'REQ-FRM-001', 'REQ-BUS-001', '8'),
+        ('a requirement with no verify question', 'spec', '| line monitor decodes a known byte |', '|  |', '8'),
+        ('a requirement table without a Basis column', 'spec', '| Basis |', '| Source |', '8'),
     ]
 
 
 def selftest():
     t0, fails = load(), 0
+    if t0['spec'] is None:                    # before spec.md exists: run check 8 on the fixture
+        t0['spec'] = FIXTURE
     clean, _ = check(t0)
     for name, key, old, new, kind in mutations(t0):
         t = dict(t0)

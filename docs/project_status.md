@@ -55,7 +55,7 @@ Status: pass / fail / not run / not applicable, with evidence.
 | Probes | pass — matches baseline (48 PASS / 20 FAIL known tool limits / 0 UNAVAIL over 68 checks), 2026-11-15, cloud host, toolchain rebuilt from `scripts/install_toolchain.sh` | `make probe` | `build/probe/results.txt`; baseline `tb/probes/expected.txt` (re-accepted 2026-11-15, D-011 to D-013); summary in `conventions.md` §2 |
 | Probes, original Mac suite | pass — matches its baseline (26 PASS / 8 FAIL / 1 UNAVAILABLE), 2026-11-15, cloud host | `make probe-mac` | `build/reports/probes_mac.txt`; `tb/probes/mac_suite/README.md` |
 | License headers | pass — every file, 2026-11-15 | `make license` | `reuse lint` output; `REUSE.toml` (D-014) |
-| Documents agree with each other and the repository | pass, self-test 15 of 15, 2026-11-15 | `make check-docs` | `scripts/check_docs.py` output |
+| Documents agree with each other and the repository | pass, self-test 23 of 23 (check 8, the spec basis rule of D-021, added 2026-11-27 and shown failing on 8 planted errors in a fixture), 2026-11-27 | `make check-docs` | `scripts/check_docs.py` output |
 | Lint | not run | `make lint` (not implemented) | |
 | Regression | not run | `make regression` (not implemented) | |
 | Formal | not run | `make formal` (not implemented) | |

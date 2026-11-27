@@ -372,7 +372,7 @@ save the decoded log under `build/reports/bringup/`. That is hard evidence for t
 | `make bringup` | Capture + decode UART with `sigrok-cli` | `build/reports/bringup/` | planned |
 | `make vivado` | Tier 3: `vivado -mode batch -source scripts/vivado_build.tcl` (x86 machine only) | `build/reports/vivado/` | planned |
 | `make license` | `reuse lint`: every file has SPDX license and copyright information | exits nonzero on a missing header | yes |
-| `make check-docs` | `scripts/check_docs.py`: decision records complete; every cited decision, bug and probe exists; every rule cites a probe or a bug-log entry; this table matches the Makefile; the quoted baseline matches `expected.txt`. Runs its self-test first | exits nonzero on any disagreement | yes |
+| `make check-docs` | `scripts/check_docs.py`: decision records complete; every cited decision, bug and probe exists; every rule cites a probe or a bug-log entry; this table matches the Makefile; the quoted baseline matches `expected.txt`; every requirement in `docs/spec.md` names a basis and a verify question (D-021). Runs its self-test first | exits nonzero on any disagreement | yes |
 | `make clean` | Removes `build/` only | — | yes |
 
 Every random seed used is printed and logged; `make sim TEST=x SEED=n` must reproduce a
