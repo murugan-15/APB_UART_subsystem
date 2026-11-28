@@ -608,3 +608,19 @@ Reason:        R4 §3.4 recommends it; it costs one AND term (PSLVERR = access a
 Impact:        docs/spec.md REQ-IF-009.
 Decided by:    me (2026-11-28)
 Supersedes:    none
+
+### D-032 — APB side effects happen only in the cycle that completes the transfer
+Date:          2026-11-28
+Phase:         2
+Decision:      A cycle that completes no transfer (idle, Setup, or an Access cycle with PREADY low)
+               changes no register, FIFO entry or flag through the APB; every effect of a transfer
+               takes place once, in the cycle with PSEL, PENABLE and PREADY high.
+Alternatives:  No rule beyond "exactly one entry per transfer" (a Setup-cycle store or an idle-cycle
+               flag set would pass unchecked).
+Reason:        One timing rule for every side effect, checked by one assertion and one formal property;
+               it excludes double pops and Setup-cycle pushes; it costs nothing, since the decode is
+               qualified by PSEL and PENABLE either way.
+Impact:        docs/spec.md REQ-IF-012; scripts/apb_slave_model.py plants double_pop, setup_push,
+               setup_ctrl, idle_ovf.
+Decided by:    me (2026-11-28)
+Supersedes:    none

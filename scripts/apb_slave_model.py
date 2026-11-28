@@ -28,7 +28,7 @@ registers and the value a R/W write stores (OI-06).
 Usage:  python3 scripts/apb_slave_model.py              correct model, coverage counts, every planted bug
         python3 scripts/apb_slave_model.py --plant NAME one planted bug only (must be caught)
 Exit 0 only when the correct model passes, every directed corner case ran, and every planted bug is
-caught under the row it names.
+caught first under the row it names.
 """
 import argparse
 import random
@@ -46,7 +46,10 @@ PLANTS = {                                   # name: (row it breaks, description
     'stale_read':   ('REQ-IF-003', 'an empty RXDATA read returns the last popped byte'),
     'err_rxread':   ('REQ-IF-004', 'PSLVERR on every RXDATA read'),
     'head_wrong':   ('REQ-IF-005', 'a RXDATA read returns the head with bit 0 inverted'),
-    'double_pop':   ('REQ-IF-006', 'a RXDATA read pops in Setup as well as in Access'),
+    'double_pop':   ('REQ-IF-012', 'a RXDATA read pops in Setup as well as in Access'),
+    'setup_push':   ('REQ-IF-012', 'a TXDATA write pushes in Setup as well as in Access'),
+    'setup_ctrl':   ('REQ-IF-012', 'a CTRL write stores PWDATA already in its Setup cycle'),
+    'idle_ovf':     ('REQ-IF-012', 'TX_OVF set in an idle cycle while the TX FIFO is full'),
     'push_corrupt': ('REQ-IF-007', 'a TXDATA write pushes PWDATA[7:0] with bit 0 inverted'),
     'err_data':     ('REQ-IF-008', 'an errored read returns 0xEE, not 0'),
     'err_ctrl':     ('REQ-IF-009', 'PSLVERR on a write to CTRL'),
@@ -118,8 +121,15 @@ class Slave:
                 pop_rx = p == 'status_pop' and not rx_empty
             elif off in self.regs:
                 prdata = self.regs[off]
-        if p == 'double_pop' and psel and not penable and not pwrite and off == RXDATA and not rx_empty:
+        setup = psel and not penable
+        if p == 'double_pop' and setup and not pwrite and off == RXDATA and not rx_empty:
             pop_rx = True
+        if p == 'setup_push' and setup and pwrite and off == TXDATA and not tx_full:
+            push_tx = True
+        if p == 'setup_ctrl' and setup and pwrite and off == CTRL:
+            self.regs[CTRL] = pwdata
+        if p == 'idle_ovf' and not psel and tx_full:
+            set_ovf = True
         if done and pwrite and not err:
             if off == TXDATA:
                 if not tx_full or (p == 'accept_pop' and shifter_pop):
@@ -184,7 +194,8 @@ class Checker:
             self.fail('REQ-IF-001', f'PREADY low in an Access cycle at 0x{paddr:X}')
         if pslverr and not (access and pready):
             self.fail('REQ-IF-010', 'PSLVERR high outside the last cycle of a transfer')
-        own = 'REQ-IF-006'                 # a cycle that completes no transfer: no APB side effect at all
+        n0 = len(self.fails)
+        own = 'REQ-IF-012'                 # a cycle that completes no transfer: no APB side effect at all
         if access and pready:
             unmapped = paddr not in REGS
             ro_write = pwrite and paddr in (RXDATA, STATUS)
@@ -227,7 +238,7 @@ class Checker:
                         if prdata != 0:
                             self.fail('REQ-IF-003', f'empty RXDATA read returned 0x{prdata:X}')
                         if rx1 not in exp_rx:
-                            self.fail('REQ-ERR-003', 'an empty RXDATA read removed an entry')
+                            self.fail('REQ-ERR-003', 'an empty RXDATA read left the RX FIFO other than the receiver leaves it')
                     else:
                         if prdata & 0xFF != rx0[0]:
                             self.fail('REQ-IF-005', f'RXDATA read returned 0x{prdata:X}, head 0x{rx0[0]:X}')
@@ -245,8 +256,8 @@ class Checker:
                 elif pwrite:                                               # CTRL, BAUDDIV, INT_EN
                     exp_r[paddr] = r1[paddr]                               # the stored value: OI-06 (Gate 3)
         # every cycle: nothing changes but what the shifter, the receiver and the row named above change
-        if tx1 != exp_tx or rx1 not in exp_rx or r1 != exp_r:
-            self.fail(own, f'state changed beyond its row at 0x{paddr:X}')
+        if (tx1 != exp_tx or rx1 not in exp_rx or r1 != exp_r) and len(self.fails) == n0:   # only if no row
+            self.fail(own, f'state changed beyond its row at 0x{paddr:X}')                 # failed already
 
 
 def transfer(s, c, pwrite, paddr, pwdata=0, sp=(False, False), rp=(None, None)):
@@ -310,6 +321,10 @@ def run(plant, seed=1):
     return c
 
 
+def never_run(cov):
+    return [k for k, v in cov.items() if not v]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--plant', choices=sorted(PLANTS))
@@ -318,19 +333,22 @@ def main():
     bad = False
     if not a.plant:
         c = run(None)
-        print(f'{"PASS" if not c.fails else "FAIL"}    correct model: {len(c.fails)} assertion failures')
+        zero = never_run(c.cov)
+        print(f'{"PASS" if not (c.fails or zero) else "FAIL"}    correct model: {len(c.fails)} assertion failures, '
+              f'{len(zero)} corner cases never run')
         for f in c.fails[:3]:
             print(f'        {f}')
         print('        coverage: ' + ', '.join(f'{k} {v}' for k, v in c.cov.items()))
-        zero = [k for k, v in c.cov.items() if not v]
         if zero:
-            print(f'FAIL    corner cases never run: {", ".join(zero)}')
-        bad = bool(c.fails or zero)
+            print(f'        never run: {", ".join(zero)}')
+        planted = never_run(dict(c.cov, **{next(iter(c.cov)): 0}))      # the coverage rule, seen failing
+        print(f'{"PASS" if planted else "FAIL"}    a zero coverage count fails the run (planted: {planted})')
+        bad = bool(c.fails or zero or not planted)
     caught = 0
     for name in names:
         row, text = PLANTS[name]
         fails = run(name).fails
-        hit = any(f.startswith(row + ':') for f in fails)
+        hit = bool(fails) and fails[0].startswith(row + ':')           # reported first under its own row
         caught += hit
         print(f'{"CAUGHT" if hit else "MISSED"}  {name} ({row}): {text}' +
               ('' if hit else f'\n        reported: {fails[0] if fails else "nothing"}'))
