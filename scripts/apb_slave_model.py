@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2026 Ramasubbu Bala Murugan
-"""Cycle model of the APB slave behaviour decided in D-019 and D-025 to D-031 (D-024: one executable model).
+"""Cycle model of the APB slave behaviour decided in D-019 and D-025 to D-032 (D-024: one executable model).
 
 A claim, not evidence (D-021, D-024): it becomes evidence only through the Gate 5 directed tests
 against the RTL. Two parts with no behaviour code in common (they share only the register map
@@ -10,7 +10,8 @@ constants below, so a wrong offset constant would pass both):
            dropped and TX_OVF set (D-025), also in the cycle of a shifter pop (D-029); RXDATA read when
            the RX FIFO is empty returns 0 and does not pop (D-026); full decode with PSLVERR, PRDATA 0 and
            no side effect on an unmapped offset, a write to a read-only or a read of a write-only
-           register (D-027, D-030); PSLVERR low outside the last cycle (D-031); INT_STATUS W1C (D-019).
+           register (D-027, D-030); PSLVERR low outside the last cycle (D-031); INT_STATUS W1C (D-019); side effects only in
+           the cycle that completes the transfer (D-032).
            The RX FIFO is a storage array with read and write pointers one bit wider than the index, so
            an ungated pop can be planted.
   Checker  sees the bus pins, and the FIFO contents and register values before and after each cycle;
@@ -23,7 +24,8 @@ of the read. The shifter's pop and the receiver's push of that cycle act after t
 those flags. Register map: the seed draft map (finalised at Gate 3). Window: 4 KB here (a parameter,
 OI-03). Not modelled: the RX overrun policy (seed decision 5; a push into a full RX FIFO is dropped here,
 and with a pop in the same cycle either outcome passes, OI-04), read values of STATUS and of the R/W
-registers and the value a R/W write stores (OI-06).
+registers and the value a R/W write stores (OI-06). Not reachable: the PREADY-low clause of
+REQ-IF-012, since D-028 allows no wait states; the 'stall' plant breaks REQ-IF-001 first.
 
 Usage:  python3 scripts/apb_slave_model.py              correct model, coverage counts, every planted bug
         python3 scripts/apb_slave_model.py --plant NAME one planted bug only (must be caught)
@@ -194,7 +196,6 @@ class Checker:
             self.fail('REQ-IF-001', f'PREADY low in an Access cycle at 0x{paddr:X}')
         if pslverr and not (access and pready):
             self.fail('REQ-IF-010', 'PSLVERR high outside the last cycle of a transfer')
-        n0 = len(self.fails)
         own = 'REQ-IF-012'                 # a cycle that completes no transfer: no APB side effect at all
         if access and pready:
             unmapped = paddr not in REGS
@@ -225,13 +226,16 @@ class Checker:
                         self.cov['write on a shifter pop, tx full'] += shifter_pop
                         if tx1 != exp_tx:
                             self.fail('REQ-ERR-001', 'a TXDATA write to a full TX FIFO changed the FIFO')
+                            exp_tx = tx1                     # reported; the final check compares the rest
+                        exp_r[INT_STATUS] |= TX_OVF
                         if not r1[INT_STATUS] & TX_OVF:
                             self.fail('REQ-ERR-002', 'TX_OVF not set by a TXDATA write to a full TX FIFO')
-                        exp_r[INT_STATUS] |= TX_OVF
+                            exp_r[INT_STATUS] = r1[INT_STATUS]
                     else:
                         exp_tx = exp_tx + [pwdata & 0xFF]
                         if tx1 != exp_tx:
                             self.fail('REQ-IF-007', 'a TXDATA write with room did not push exactly PWDATA[7:0]')
+                            exp_tx = tx1
                 elif not pwrite and paddr == RXDATA:
                     if not rx0:
                         self.cov['empty read with push'] += rx_push is not None
@@ -239,6 +243,7 @@ class Checker:
                             self.fail('REQ-IF-003', f'empty RXDATA read returned 0x{prdata:X}')
                         if rx1 not in exp_rx:
                             self.fail('REQ-ERR-003', 'an empty RXDATA read left the RX FIFO other than the receiver leaves it')
+                            exp_rx = [rx1]
                     else:
                         if prdata & 0xFF != rx0[0]:
                             self.fail('REQ-IF-005', f'RXDATA read returned 0x{prdata:X}, head 0x{rx0[0]:X}')
@@ -247,17 +252,19 @@ class Checker:
                             exp_rx.append(rx0[1:] + [rx_push])           # overrun policy open (OI-04)
                         if rx1 not in exp_rx:
                             self.fail('REQ-IF-006', 'a RXDATA read with data did not pop exactly one entry')
+                            exp_rx = [rx1]
                 elif pwrite and paddr == INT_STATUS:
                     if r0[INT_STATUS] & TX_OVF:
                         self.cov['w1c clear of a set TX_OVF' if pwdata & TX_OVF else 'w1c write of 0, TX_OVF set'] += 1
                     exp_r[INT_STATUS] = r0[INT_STATUS] & ~pwdata
                     if r1[INT_STATUS] != exp_r[INT_STATUS]:
                         self.fail('REQ-FUNC-001', f'INT_STATUS 0x{r0[INT_STATUS]:X}, write 0x{pwdata:X}, gave 0x{r1[INT_STATUS]:X}')
+                        exp_r[INT_STATUS] = r1[INT_STATUS]
                 elif pwrite:                                               # CTRL, BAUDDIV, INT_EN
                     exp_r[paddr] = r1[paddr]                               # the stored value: OI-06 (Gate 3)
         # every cycle: nothing changes but what the shifter, the receiver and the row named above change
-        if (tx1 != exp_tx or rx1 not in exp_rx or r1 != exp_r) and len(self.fails) == n0:   # only if no row
-            self.fail(own, f'state changed beyond its row at 0x{paddr:X}')                 # failed already
+        if tx1 != exp_tx or rx1 not in exp_rx or r1 != exp_r:     # fields a row check reported already take
+            self.fail(own, f'state changed beyond its row at 0x{paddr:X}')   # their observed value above
 
 
 def transfer(s, c, pwrite, paddr, pwdata=0, sp=(False, False), rp=(None, None)):
