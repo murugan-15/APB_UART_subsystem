@@ -130,7 +130,7 @@ Findings of 2026-11-15 (probes p15 to p27):
 
 ## Decisions
 
-See `docs/decisions.md` (D-001 to D-028).
+See `docs/decisions.md` (D-001 to D-031).
 
 ## Open decisions (mine to make)
 

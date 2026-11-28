@@ -564,3 +564,47 @@ Impact:        The RX FIFO head must be valid in the Access cycle: Gate 3 shows 
                model (D-024) before seed decision 2 (storage) is taken; docs/spec.md REQ-IF rows.
 Decided by:    me
 Supersedes:    none
+
+### D-029 — A TXDATA write in the cycle of a shifter pop from a full TX FIFO is dropped (spec open item OI-01)
+Date:          2026-11-28
+Phase:         2
+Decision:      The TX FIFO full flag in the Access cycle of a TXDATA write decides alone: when it is
+               set, the write is dropped and TX_OVF is set (D-025) even if the shifter pops in that
+               cycle.
+Alternatives:  Accept the write when the same cycle frees a slot (no byte lost in that race; the
+               shifter's pop then feeds the push and TX_OVF logic combinationally, and D-025's
+               "finds the TX FIFO full" needs a new meaning).
+Reason:        D-025 as worded; the full flag is a registered level, so the accept path has no
+               combinational input from the transmitter; the race is avoided by the driver contract
+               of D-025 (read the TX-full status bit before writing). The two variants are told apart
+               by scripts/apb_slave_model.py (variants block and accept).
+Impact:        docs/spec.md REQ-ERR-001, REQ-ERR-002, REQ-IF-006; Gate 3 TX FIFO push logic.
+Decided by:    me (no preference given 2026-11-28; the recommendation taken under the standing
+               acceptance of proposals of 2026-11-27)
+Supersedes:    none
+
+### D-030 — A read of the write-only TXDATA gets PSLVERR with PRDATA 0 and no side effect (spec open item OI-02)
+Date:          2026-11-28
+Phase:         2
+Decision:      A read of a write-only register (TXDATA) is treated as D-027 treats a write to a
+               read-only register: it completes with PSLVERR, PRDATA 0, and changes nothing.
+Alternatives:  PRDATA 0 with no error (harmless read; read-only and write-only registers would then
+               follow different rules).
+Reason:        One rule for every offset and access type: an access a register does not support is an
+               error with no side effect, checkable by the same window-sweep test and assertion.
+Impact:        docs/spec.md REQ-ERR rows and REQ-IF-008; Gate 3 decode.
+Decided by:    me (no preference given 2026-11-28; the recommendation taken under the standing
+               acceptance of proposals of 2026-11-27)
+Supersedes:    none
+
+### D-031 — PSLVERR is low in every cycle that is not the last cycle of a transfer
+Date:          2026-11-28
+Phase:         2
+Decision:      The slave drives PSLVERR low whenever PSEL, PENABLE or PREADY is low.
+Alternatives:  PSLVERR defined in the last cycle only, any value elsewhere (R4 §3.4 allows it).
+Reason:        R4 §3.4 recommends it; it costs one AND term (PSLVERR = access and error) and is
+               checked by one assertion and one formal property; a requester that samples PSLVERR
+               early never sees a false error.
+Impact:        docs/spec.md REQ-IF-009.
+Decided by:    me (2026-11-28)
+Supersedes:    none
